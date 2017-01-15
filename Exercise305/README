@@ -1,0 +1,4 @@
+Brute force solution to Joseph's Problem
+
+Compiled as follows:
+g++ -Wall -std=c++11 -o main main.cc
