@@ -1,129 +1,89 @@
 /*
- * Solution to the Joseph problem, provided in exercise 305. Goal is, provided a kvalue
- * where the kvalue denotes k good guys and k bad buys in a circle respectively, find the
- * minimum value such that by looping around the circle, all the bad guys are executed first
- *
- * Solution provided is a brute force solution. IE, we start at the minimum possible value
- * and work our way up by incrementing the minimum value each time. Note that we are able to
- * skip some values of m as they would immediately delete a good guy first. This has
- * been implemented in the isValidM function.
+ * Brute force solution to Exercise 305 of UVA. Since we already know
+ * our range of inputs, we begin by calculating all those values and
+ * storing them in an array. Once completed, when we get input, we
+ * either quit (if 0) or get the solution from the solutions array
  *
  * Author : Joshua Tymburski
 */
-
 #include <iostream>
-#include <string>
-#include <vector>
 
 /*
- * Function that checks if the provided m value (IE, the minimum value)
- * works to execute all bad guys before good guys
- * 
+ * Function which takes in the kvalue as well as mvalue to be
+ * tested. Returns if the m value works for the given k
+ *
+ * @param kValue
  * @param mValue
- * @param kValue
- * @param circle of individuals as a vector
- *
- * @return success or not
+ * @return works or not
 */
-bool isValidM(int, int, std::vector<int>);
+bool isValidMValue(int, int);
 
-/*
- * Function that gets the circle of good guys and bad
- * guys with given input of k. Good guys are denoted by 1,
- * bad guys are denoted by 2.
- *
- * @param kValue
- *
- * @return vector of the 2 * kValue dudes
-*/
-std::vector<int> getCircle(int);
-
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
-    while (true)
+    /*
+     * Create array and populate with solutions using a
+     * loop from 1 to 13 inclusive (0 not needed since 0)
+     * quits the program
+    */
+    int solutions[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+    for (int i = 1; i < 14; ++i)
     {
-        std::string inputAsString = "";
-        int kValue, mValue;
-
-        std::getline(std::cin, inputAsString);
-
         /*
-         * Use C++11 functionality to convert string to integer
+         * Minimum mValue has to be the given k + 1
         */
-        kValue = std::stoi(inputAsString);
+        int mValue = i + 1;
 
-        /*
-         * If user input is a 0, program ends
-        */
-        if (kValue == 0)
-            break;
-
-        /*
-         * Minimum value that we can start checking is the kValue + 1
-        */
-        mValue = kValue + 1;
-
-        std::vector<int> circleOfDudes = getCircle(kValue);
-
-        /*
-         * Check if mValue is valid. If not, reset circle and increment m
-        */
-        while (!(isValidM(mValue, kValue, circleOfDudes)))
+        while (!(isValidMValue(i, mValue)))
             ++mValue;
 
-        std::cout << mValue << std::endl;
+        solutions[i] = mValue;
+    }
+
+    while (true)
+    {
+        int inputtedKValue;
+        std::cin >> inputtedKValue;
+
+        if (inputtedKValue == 0)
+            break;
+
+        std::cout << solutions[inputtedKValue] << std::endl;
     }
 
     return 0;
 }
 
-bool isValidM(int mValue, int kValue, std::vector<int> circleOfDudes)
+bool isValidMValue(int kValue, int mValue)
 {
-    int index = mValue - 1;
-
     /*
-     * Our index has to be between k and 2k -1 (mod 2k) otherwise
-     * we start off by deleting a good guy
-    */ 
-    if ((index % circleOfDudes.size()) < kValue)
-        return false;
-
-    /*
-     * Using our index and our iteration value of m, 'execute' people
-     * until our index lands us at a good guy
+     * Denote number of good and bad guys. Temp starting
+     * value is mValue - 1 since we're doing arithmetic from
+     * 0 to 2*k - 1, not 1 to 2*k
     */
-    while (circleOfDudes[index % circleOfDudes.size()] == 2)
+    int goodGuys = kValue;
+    int badGuys = kValue;
+    int temp = mValue - 1;
+    
+    /*
+     * If good guys is not kValue, we've executed a good guy
+     * and we can end. Then, check if number of bad guys is
+     * 0 and this tells us if the mValue is valid or not
+    */
+    while(goodGuys == kValue)
     {
-        index = index % circleOfDudes.size();
+        temp = temp % (goodGuys + badGuys);
 
-        circleOfDudes.erase(circleOfDudes.begin() + index);
-        index -= 1;
-        index += mValue;
+        if (temp < goodGuys)
+            --goodGuys;
+        else
+            --badGuys;
+
+        temp += mValue - 1;
     }
 
-    /*
-     * If the size of the vector is greater than kValue, then
-     * via the pigeonhole principle, we have at least one
-     * bad guy remaining
-    */
-    if (circleOfDudes.size() > kValue)
+    if (badGuys != 0)
         return false;
 
     return true;
-}
-
-std::vector<int> getCircle(int givenKValue)
-{
-    std::vector<int> circleOfDudes;
-
-    /*
-     * Denote good guys by 1 and 2 by bad guys
-    */
-    for (int i = 0; i < givenKValue; ++i)
-        circleOfDudes.push_back(1);
-
-    for (int i = givenKValue; i < 2*givenKValue; ++i)
-        circleOfDudes.push_back(2);
-
-    return circleOfDudes;
 }
