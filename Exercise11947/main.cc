@@ -3,12 +3,13 @@
 
 int main(int argc, char** argv)
 {
-    std::string zodiacValues[13][2] = {{"0", "0"}, {"Capicorn", "20"}, {"Aquarius", "19"}, {"Pisces", "20"}, 
-                                                   {"Aries", "20"}, {"Taurus", "21"}, {"Gemini", "21"}, 
-                                                   {"Cancer", "22"}, {"Leo", "21"}, {"Virgo", "23"}, 
-                                                   {"Libra", "23"}, {"Scorpio", "22"}, {"Sagittaarius", "22"}};
+    std::string zodiacValues[13][2] = {{"0", "0"}, {"capicorn", "20"}, {"aquarius", "19"}, {"pisces", "20"}, 
+                                                   {"aries", "20"}, {"taurus", "21"}, {"gemini", "21"}, 
+                                                   {"cancer", "22"}, {"leo", "21"}, {"virgo", "23"}, 
+                                                   {"libra", "23"}, {"scorpio", "22"}, {"sagittaarius", "22"}};
 
     int numOfInputs;
+    int counter = 1;
     std::string tempString;
     std::cin >> numOfInputs;
     std::getline(std::cin, tempString, '\n');
@@ -19,7 +20,12 @@ int main(int argc, char** argv)
         std::getline(std::cin, dateString, '\n');
         Date date(std::stoi(dateString.substr(4, 4)), std::stoi(dateString.substr(0, 2)), std::stoi(dateString.substr(2, 2)));
         date.addDay(40*7);
-        
+
+        int day = date.dd;
+        if ((date.dd) > std::stoi(zodiacValues[date.mm][1]))
+            std::cout << counter++ << " " << date.mm << "/" << date.dd << "/" << date.yyyy << " " << zodiacValues[(date.mm + 1) % 13][0] << std::endl;
+        else
+            std::cout << counter++ << " " << date.mm << "/" << date.dd << "/" << date.yyyy << " " << zodiacValues[date.mm % 13][0] << std::endl;
     }
 
     return 0;
