@@ -1,3 +1,10 @@
+/*
+ * Solution to exercise 10189 - Minesweeper. Takes an input of a board with mine
+ * locations and returns a board with proper numbers that designate the number
+ * of mines in near vicinity.
+ *
+ * Author : Joshua Tymburski
+*/
 #include <iostream>
 
 int main(int argc, char** argv)
@@ -19,11 +26,19 @@ int main(int argc, char** argv)
         if (numOfRows == 0 && numOfColumns == 0)
             break;
 
+        /*
+         * Just a method to avoid having a new line at the beginning of the program
+         * and end of program
+        */
         if (!(isFirstTime))
             std::cout << std::endl;
         else
             isFirstTime = false;
         
+        /*
+         * Initialize a table with 1 more column and row on all sides of our board. Max board size is 100
+         * then get all the input values
+        */
         for (int i = 0; i < 102; ++i)
             for (int j = 0; j < 102; ++j)
                 minesweeperTable[i][j] = '.';
@@ -44,6 +59,10 @@ int main(int argc, char** argv)
         std::cout << "Field #" << fieldNumber << ":" << std::endl;
         ++fieldNumber;
 
+        /*
+         * Use our constant direction values to find mines on all eight sides
+         * of every given square.
+        */
         for (int i = 1; i < numOfRows + 1; ++i)
         {
             for (int j = 1; j < numOfColumns + 1; ++j)
