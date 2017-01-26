@@ -17,8 +17,14 @@ int main(int argc, char** argv)
         int numOfRows, numOfColumns;
         char minesweeperTable[102][102];
 
+        /*
+         * Generic constant tables to indicate directions that we are looking.
+         * Negative row direction indicates to the left of the block, positive indicates
+         * to the right, zero indicates no change. Similarily, we define column direction.
+        */
         const int rowDirection[8] = {-1, 0, 1, 1, 1, 0, -1, -1};
         const int columnDirection[8] = {1, 1, 1, 0, -1, -1, -1, 0};
+
         const char possibleValues[9] = {'0', '1', '2', '3', '4', '5', '6', '7', '8'};
 
         std::cin >> numOfRows >> numOfColumns;
