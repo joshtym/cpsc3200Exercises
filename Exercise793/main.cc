@@ -1,3 +1,17 @@
+/*
+ * Solution to UVA Exercise 793. GOal is to keep track
+ * of a set of interconnected computers and be able to tell
+ * at any time what computers are connected and which
+ * ones are not. Uses the dataset of unionfind. Specifically,
+ * the one written by Howard Cheng to manage which items
+ * are connected and not. N
+ *
+ * NOTE: Uses std::stoi function so is required to compiled by
+ * C++11
+ *
+ * Author : Joshua Tymburski
+*/
+
 #include <iostream>
 #include <string>
 
@@ -66,6 +80,16 @@ int main(int argc, char** argv)
 
    std::cin >> runTimes;
 
+   /*
+    * Get runtimes and loop through. Note that we are using the getline
+    * function since regular cin ignores anything white space or newline.
+    * and we don't know how many connections or questions we will
+    * receive. Creates a Union find data structure using above class and
+    * fetches the character (q or c) and two numbers from each getline
+    * instance. Since the union find goes from 0 to n-1, we need
+    * to ensure that when we get a question, we look for the number - 1.
+    * Print out final result
+   */
    for (int i = 0; i < runTimes; ++i)
    {
       int numOfComputers;
@@ -102,10 +126,10 @@ int main(int argc, char** argv)
          std::getline(std::cin, inputLine, '\n');
       }
 
+      std::cout << successNum << "," << unsuccessNum << std::endl;
+
       if (i != runTimes -1)
-         std::cout << successNum << "," << unsuccessNum << std::endl << std::endl;
-      else
-         std::cout << successNum << "," << unsuccessNum << std::endl;
+         std::cout << std::endl;
    }
 
    return 0;
