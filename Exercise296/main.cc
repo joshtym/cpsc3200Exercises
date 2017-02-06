@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <algorithm>
 
 bool doesNumWork(std::string, std::string, int, int);
 
@@ -78,23 +79,41 @@ bool doesNumWork(std::string testNumber, std::string guessesNumber, int clueOne,
    int numExactlyCorrect = 0;
    int wronglyPositioned = 0;
 
-   for (int i = 0; i < 4; ++i)
+   for (int i = 0; i < testNumber.length(); ++i)
       if (testNumber[i] == guessesNumber[i])
+      {
          ++numExactlyCorrect;
+         testNumber.erase(i, 1);
+         guessesNumber.erase(i--, 1);
+      }
 
    if (numExactlyCorrect != clueOne)
       return false;
 
-   for (int i = 0; i < 4; ++i)
+   for (int i = 0; i < testNumber.length(); ++i)
    {
-      int j = 0;
+      char countingChar = testNumber[i];
+      int count1 = 0, count2 = 0;
 
-      while (j++ != 4)
-         if (j != i && guessesNumber[j] == testNumber[i])
+      for (int j = 0; j < testNumber.length(); ++j)
+         if (testNumber[j] == countingChar)
          {
-            ++wronglyPositioned;
-            break;
+            count1++;
+            if (j == i)
+               --i;
+            testNumber.erase(j--, 1);
          }
+
+      for (int j = 0; j < guessesNumber.length(); ++j)
+         if (guessesNumber[j] == countingChar)
+         {
+            count2++;
+            if (j == i)
+               --i;
+            guessesNumber.erase(j--, 1);
+         }
+
+      wronglyPositioned += std::min(count1, count2);
    }
 
    if (wronglyPositioned != clueTwo)
