@@ -11,13 +11,14 @@ int main(int argc, char** argv)
    int testCases;
    int numOfAccess, numOfHouses;
 
-   std::fill_n(houseNumbers, 100001, 2000000);
+   //std::fill_n(houseNumbers, 100001, 2000000);
 
    std::cin >> testCases;
 
    for (int i = 0; i < testCases; ++i)
    {
       std::cin >> numOfAccess >> numOfHouses;
+      std::fill_n(houseNumbers, 100001, 2000000);
 
       for (int j = 0; j < numOfHouses; ++j)
       {
@@ -38,7 +39,7 @@ int main(int argc, char** argv)
          while (hi - lo > 0.01)
          {
             double mid = (hi + lo) / 2;
-
+            //std::cout << "hi is " << hi << " and lo is " << lo << " and mid is " << mid << std::endl;
             if (check(mid, numOfAccess, numOfHouses))
                hi = mid;
             else
