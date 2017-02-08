@@ -4,17 +4,19 @@
 
 char board[15][15];
 
-long long findSolutions(std::vector<int>, int, int);
+int findSolutions(std::vector<int>, int, int);
 
 int main(int argc, char** argv)
 {
    int boardSize;
    int testCase = 1;
+   int defaultSols[15] = {0,0,0,2,10,4,40,92,352,724,2680,14200,73712,365596,2279184};
 
    std::cin >> boardSize;
 
    while (boardSize != 0)
    {
+      bool hasBadSquare = false;
       char square;
       std::vector<int> permutableElements;
 
@@ -25,70 +27,52 @@ int main(int argc, char** argv)
          for (int j = 0; j < boardSize; ++j)
          {
             std::cin >> square;
+
+            if (square == '*')
+               hasBadSquare = true;
+
             board[i][j] = square;
          }
 
-      std::cout << "Case " << testCase++ << ": " << findSolutions(permutableElements, 0, permutableElements.size() - 1) << std::endl;
+      if (hasBadSquare)
+         std::cout << "Case " << testCase++ << ": " << findSolutions(permutableElements, 0, permutableElements.size() - 1) << std::endl;
+      else
+         std::cout << "Case " << testCase++ << ": " << defaultSols[boardSize - 1] << std::endl;
 
       std::cin >> boardSize;
    }
    return 0;
 }
 
-long long findSolutions(std::vector<int> elements, int start, int end)
+int findSolutions(std::vector<int> elements, int start, int end)
 {
-   long long solutions = 0;
+   int solutions = 0;
    int diagonalsAdd[15];
    int diagonalsSubtract[15];
-
-   if (start == end)
-   {
-      for (int j = 0; j < elements.size(); ++j)
-         if (board[j][elements[j]] == '*')
-            return 0;
-
-      for (int j = 0; j < elements.size(); ++j)
-      {
-         diagonalsAdd[j] = j + elements[j];
-         diagonalsSubtract[j] = j - elements[j];
-      }
-
-      for (int j = 0; j < elements.size(); ++j)
-         for (int k = j+1; k < elements.size(); ++k)
-         {
-            if (diagonalsAdd[j] == diagonalsAdd[k])
-               return 0;
-            if (diagonalsSubtract[j] == diagonalsSubtract[k])
-               return 0;
-         }
-
-      return 1;
-   }
 
    for (int i = start; i <= end; ++i)
    {
       bool isValidPerm = true;
       std::swap(elements[start], elements[i]);
 
-      for (int j = 0; j <= start; ++j)
-         if (board[j][elements[j]] == '*')
-            isValidPerm = false;
+      if (board[start][elements[start]] == '*')
+         isValidPerm = false;
 
-      /// ADD LOGIC TO DEAL WITH DIAGONALS
-      for (int j = 0; j <= start; ++j)
+      for (int j = 0; j < start; ++j)
       {
-         diagonalsAdd[j] = j + elements[j];
-         diagonalsSubtract[j] = j - elements[j];
+         if ((j + elements[j]) == (start + elements[start]))
+            isValidPerm = false;
+         if ((j - elements[j]) == (start - elements[start]))
+            isValidPerm = false;
       }
 
-      for (int j = 0; j <= start; ++j)
-         for (int k = j+1; k <= start; ++k)
-         {
-            if (diagonalsAdd[j] == diagonalsAdd[k])
-               isValidPerm = false;
-            if (diagonalsSubtract[j] == diagonalsSubtract[k])
-               isValidPerm = false;
-         }
+      if (start == end)
+      {
+         if (isValidPerm)
+            return 1;
+         else
+            return 0;
+      }
 
       if (isValidPerm)
          solutions += findSolutions(elements, start+1, end);
