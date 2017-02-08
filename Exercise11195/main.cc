@@ -42,7 +42,28 @@ long long findSolutions(std::vector<int> elements, int start, int end)
    int diagonalsSubtract[15];
 
    if (start == end)
+   {
+      for (int j = 0; j < elements.size(); ++j)
+         if (board[j][elements[j]] == '*')
+            return 0;
+
+      for (int j = 0; j < elements.size(); ++j)
+      {
+         diagonalsAdd[j] = j + elements[j];
+         diagonalsSubtract[j] = j - elements[j];
+      }
+
+      for (int j = 0; j < elements.size(); ++j)
+         for (int k = j+1; k < elements.size(); ++k)
+         {
+            if (diagonalsAdd[j] == diagonalsAdd[k])
+               return 0;
+            if (diagonalsSubtract[j] == diagonalsSubtract[k])
+               return 0;
+         }
+
       return 1;
+   }
 
    for (int i = start; i <= end; ++i)
    {
