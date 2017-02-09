@@ -1,8 +1,24 @@
+/*
+ * Solution to Exercise 296 - Safebreaker. Solution checks all possible answers against the
+ * checks and see if we get a hit
+ *
+ * Author : Joshua Tymburski
+*/
 #include <iostream>
 #include <string>
 #include <iomanip>
 #include <algorithm>
 
+/*
+ * Helper function to check whether the number we're testing
+ * matches with the two clues of the number guessed
+ *
+ * @param testNumber
+ * @param guessNumber
+ * @param clueOne
+ * @param clueTwo
+ * @return matches or not
+*/
 bool doesNumWork(std::string, std::string, int, int);
 
 int main(int argc, char** argv)
@@ -37,6 +53,11 @@ int main(int argc, char** argv)
          incorrectPosition[j] = clueTwo;
       }
 
+      /*
+       * Iterate through all possible combinations and use helper function
+       * to determine validity of combination. End loop pre-emptively if
+       * we have found 2 matches.
+      */
       for (int j = 0; j < 9999; ++j)
       {
          bool isValidNumber = true;
@@ -50,10 +71,8 @@ int main(int argc, char** argv)
             numToTest.insert(0, "0");
 
          for (int k = 0; k < numOfGuesses; ++k)
-         {
             if (!(doesNumWork(numToTest, guesses[k], exactlyCorrect[k], incorrectPosition[k])))
                isValidNumber = false;
-         }
 
          if (isValidNumber)
          {
@@ -79,6 +98,10 @@ bool doesNumWork(std::string testNumber, std::string guessesNumber, int clueOne,
    int numExactlyCorrect = 0;
    int wronglyPositioned = 0;
 
+   /*
+    * Look at each digit and compare them. Then erase the matching digits.
+    * If this number does not match, we can immediately return false
+   */
    for (int i = 0; i < testNumber.length(); ++i)
       if (testNumber[i] == guessesNumber[i])
       {
@@ -90,6 +113,11 @@ bool doesNumWork(std::string testNumber, std::string guessesNumber, int clueOne,
    if (numExactlyCorrect != clueOne)
       return false;
 
+   /*
+    * Iterate through each remaining digit in our test number
+    * and compare the number of times they appear (by taking minimum).
+    * return false if it doesn't match the clue
+   */
    for (int i = 0; i < testNumber.length(); ++i)
    {
       char countingChar = testNumber[i];
