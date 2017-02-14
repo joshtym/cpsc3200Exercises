@@ -1,3 +1,10 @@
+/*
+ * Solution to Exercise 10656 - Maximum Sum II. Uses
+ * greedy by taking every natural number and choosing it
+ * Takes into account zero data.
+ *
+ * Author : Joshua Tymburski
+*/
 #include <iostream>
 #include <algorithm>
 
@@ -8,6 +15,10 @@ int main(int argc, char** argv)
 
    while (std::cin >> numOfLines && numOfLines != 0)
    {
+      /*
+       * Use a counter and add non-zero numbers to
+       * our array. Self explanatory
+      */
       int counter = 0;
 
       for (int i = 0; i < numOfLines; ++i)
