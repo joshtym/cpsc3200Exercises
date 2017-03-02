@@ -5,6 +5,8 @@
  * minimum distance to that square. We also keep track of the square we use to 
  * compute this for the path to be displayed later.
  *
+ * Also: https://youtu.be/M0It7Mq-si4
+ *
  * Author: Joshua Tymburski
 */
 #include <iostream>
