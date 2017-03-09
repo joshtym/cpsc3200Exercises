@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <algorithm>
+#include <string>
 using namespace std;
 
 /*
@@ -135,7 +136,6 @@ double mst(int n, int m, Edge elist[], int index[], int& size)
   return w;
 }
 
-
 int main(int argc, char** argv)
 {
    int testCases, cities, rDistance;
@@ -146,6 +146,7 @@ int main(int argc, char** argv)
       std::cin >> cities >> rDistance;
       std::vector<std::vector<int>> states;
       std::map<int, std::pair<int,int>> citiesMap;
+      UnionFind stateDesignator(cities);
 
       for (int j = 0; j < cities; ++j)
       {
@@ -153,36 +154,37 @@ int main(int argc, char** argv)
          std::cin >> x >> y;
          std::pair<int,int> city = std::make_pair(x,y);
          citiesMap[j] = city;
+      }
 
-         bool foundState = false;
-
-         for (int k = 0; k < states.size(); ++k)
+      for (int j = 0; j < cities; ++j)
+         for (int k = j+1; k < cities; ++k)
          {
-            if (foundState)
-               break;
+            int a = citiesMap[j].first - citiesMap[k].first;
+            int b = citiesMap[j].second - citiesMap[k].second;
+            double distance = sqrt((double)(a*a + b*b));
 
-            for (int l = 0; l < states[k].size(); ++l)
-            {
-               if (foundState)
-                  break;
-
-               int a = citiesMap[states[k][l]].first - city.first;
-               int b = citiesMap[states[k][l]].second - city.second;
-               double distance = sqrt((double)(a*a + b*b));
-
-               if (distance <= (double)rDistance)
-               {
-                  foundState = true;
-                  states[k].push_back(j);
-                  break;
-               }
-            }
+            if (distance <= (double)rDistance)
+               stateDesignator.merge(j, k);
          }
 
-         if (!foundState)
+      bool citiesAssigned[1001] = {false};
+
+      for (int j = 0; j < cities; ++j)
+      {
+         if (!(citiesAssigned[j]))
          {
             std::vector<int> citiesVec;
             citiesVec.push_back(j);
+            for (int k = j+1; k < cities; ++k)
+            {
+               if (!(citiesAssigned[k]))
+                  if (stateDesignator.find(j) == stateDesignator.find(k))
+                  {
+                     citiesVec.push_back(k);
+                     citiesAssigned[k] = true;
+                  }
+            }
+            citiesAssigned[j] = true;
             states.push_back(citiesVec);
          }
       }
