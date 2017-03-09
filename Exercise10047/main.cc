@@ -1,7 +1,5 @@
 #include <iostream>
-#include <vector>
 #include <queue>
-#include <utility>
 
 struct cellDetails
 {
@@ -9,10 +7,10 @@ struct cellDetails
    int column;
    int colour;
    int direction;
-   int timeTaken = 0;
+   int timeTaken;
 };
 
-int timeToEnd(cellDetails, cellDetails, bool[25][25]);
+int timeToEnd(cellDetails, cellDetails);
 
 char grid[25][25];
 int rows, columns;
@@ -29,7 +27,6 @@ int main(int argc, char** argv)
          std::cout << "Cases #" << cases++ << std::endl;
 
       cellDetails start, end;
-      bool visited[4][5][25][25] = {false};
 
       for (int i = 0; i < rows; ++i)
          for (int j = 0; j < columns; ++j)
@@ -42,6 +39,7 @@ int main(int argc, char** argv)
                start.column = j;
                start.direction = 0;
                start.colour = 0;
+               start.timeTaken = 0;
             }
 
             if (grid[i][j] == 'T')
@@ -53,7 +51,7 @@ int main(int argc, char** argv)
             }
          }
 
-      int duration = timeToEnd(start, end, visited);
+      int duration = timeToEnd(start, end);
 
       if (duration < 0)
          std::cout << "destination not reachable" << std::endl;
@@ -64,60 +62,71 @@ int main(int argc, char** argv)
    return 0;
 }
 
-int timeToEnd(cellDetails start, cellDetails end, bool visited[25][25])
+int timeToEnd(cellDetails start, cellDetails end)
 {
+   bool visited[4][5][25][25] = {false};
+
+   cellDetails current, nextState;
+   int turnRight, turnLeft;
    std::queue<cellDetails> bfsQueue;
    visited[start.direction][start.colour][start.row][start.column] = true;
    bfsQueue.push(start);
 
    while (!(bfsQueue.empty()))
    {
-      cellDetails current = bfsQueue.front();
+      current = bfsQueue.front();
       bfsQueue.pop();
 
-      if (current == end)
+      if (current.row == end.row && current.column == end.column && current.colour == 0)
          return current.timeTaken;
 
-      if (!(visited[current.direction + 1 % 4][current.colour][current.row][current.column]))
+      turnLeft = (current.direction + 3) % 4;
+      turnRight = (current.direction + 1)  % 4;
+
+      if (!(visited[turnLeft][current.colour][current.row][current.column]))
       {
-         visited[current.direction + 1 % 4][current.colour][current.row][current.column] = true;
-         cellDetails nextState = current;
+         visited[turnLeft][current.colour][current.row][current.column] = true;
+         nextState = current;
          nextState.timeTaken++;
-         nextState.direction = (nextState.direction + 1) % 4;
+         nextState.direction = turnLeft;
          bfsQueue.push(nextState);
       }
 
-      if (!(visited[current.direction + 3 % 4][current.colour][current.row][current.column]))
+      if (!(visited[turnRight][current.colour][current.row][current.column]))
       {
-         visited[current.direction + 3 % 4][current.colour][current.row][current.column] = true;
-         cellDetails nextState = current;
+         visited[turnRight][current.colour][current.row][current.column] = true;
+         nextState = current;
          nextState.timeTaken++;
-         nextState.direction = (nextState.direction + 3) % 4;
+         nextState.direction = turnRight;
          bfsQueue.push(nextState);
       }
 
       bool canMove = true;
-      std::pair<int,int> moveDirection;
+      int rowDir, columnDir;
 
       switch (current.direction)
       {
          case 0:
-            moveDirection = std::make_pair(-1,0);
+            rowDir = -1;
+            columnDir = 0;
             if (current.row == 0 || grid[current.row - 1][current.column] == '#')
                canMove = false;
             break;
          case 1:
-            moveDirection = std::make_pair(0,1);
+            rowDir = 0;
+            columnDir = 1;
             if (current.column + 1 == columns  || grid[current.row][current.column + 1] == '#')
                canMove = false;
             break;
          case 2:
-            moveDirection = std::make_pair(1,0);
+            rowDir = 1;
+            columnDir = 0;
             if (current.row + 1 == rows || grid[current.row + 1][current.column] == '#')
                canMove = false;
             break;
          case 3:
-            moveDirection = std::make_pair(0,-1);
+            rowDir = 0;
+            columnDir = -1;
             if (current.column == 0 || grid[current.row][current.column - 1] == '#')
                canMove = false;
             break;
@@ -125,13 +134,14 @@ int timeToEnd(cellDetails start, cellDetails end, bool visited[25][25])
             break;
       }
 
-      if (canMove && !(visited[current.direction][current.colour + 1 % 5][current.row + moveDirection.first][current.column + moveDirection.second]))
+      if (canMove && !(visited[current.direction][current.colour + 1 % 5][current.row + rowDir][current.column + columnDir]))
       {
-         visited[current.direction][current.colour + 1 % 5][current.row + moveDirection.first][current.column + moveDirection.second] = true;
-         cellDetails nextState = current;
-         nextState.colour = (nextState.colour + 1) % 5;
-         nextState.row += moveDirection.first;
-         nextState.column += moveDirection.second;
+         visited[current.direction][current.colour + 1 % 5][current.row + rowDir][current.column + columnDir] = true;
+         nextState = current;
+         nextState.colour = (current.colour + 1) % 5;
+         nextState.row += rowDir;
+         nextState.column += columnDir;
+         nextState.timeTaken++;
          bfsQueue.push(nextState);
       }
 
