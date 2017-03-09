@@ -1,3 +1,10 @@
+/*
+ * Solution to UVA Exercise 10004. Uses DFS to determine whether or not
+ * we can properly colour the graph. Starts by delegating the graph using
+ * node relationships using vectors then uses standard dfs to colour.
+ *
+ * Author : Joshua Tymburski
+*/
 #include <iostream>
 #include <vector>
 #include <stack>
@@ -15,9 +22,12 @@ int main(int argc, char** argv)
       int nodeColours[200] = {0};
       bool visited[200] = {0};
 
+      /*
+       * Create a vector for every vertex and push all the
+       * neighbours onto the vertex's vector
+      */
       for (int i = 0; i < vertices; ++i)
          nodeRelationships.push_back(tempVec);
-
       for (int i = 0; i < edges; ++i)
       {
          int one, two;
@@ -26,6 +36,12 @@ int main(int argc, char** argv)
          nodeRelationships[two].push_back(one);
       }
 
+      /*
+       * Bread and butter of this. Use stack for DFS. Assign first node
+       * to colour 0 and follow DFS algorithm to look at all unvisited neighbours
+       * Colours all neighbours opposite colour if not visited, else, checks
+       * if we  have a conflict.
+      */
       std::stack<int> dfsStack;
       nodeColours[0] = 0;
       visited[0] = true;
@@ -36,11 +52,9 @@ int main(int argc, char** argv)
       {
          int curr = dfsStack.top();
          dfsStack.pop();
-         //std::cout << "at node " << curr << std::endl;
          for (int i = 0; i < nodeRelationships[curr].size(); ++i)
          {
             int neighbour = nodeRelationships[curr][i];
-            //std::cout << "at neighbour " << neighbour << std::endl;
 
             if (visited[neighbour] == false)
             {

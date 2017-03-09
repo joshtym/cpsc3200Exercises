@@ -1,3 +1,13 @@
+/*
+ * Solution to UVA Exercise 11228. Utilizes MST library from Cheng's library.
+ * Starts by taking in all cities and mapping them to their coordinates. Then,
+ * uses the data structure of Union Find to determine which cities share the same state.
+ * Once accomplished and pushed onto a vector of states, we create an edge list and graph
+ * to input into MST which then provides us a weight and set of edges that go into the MST.
+ *
+ * Author: Joshua Tymburski
+*/
+
 #include <iostream>
 #include <vector>
 #include <utility>
@@ -145,9 +155,12 @@ int main(int argc, char** argv)
    {
       std::cin >> cities >> rDistance;
       std::vector<std::vector<int>> states;
-      std::map<int, std::pair<int,int>> citiesMap;
       UnionFind stateDesignator(cities);
+      std::map<int, std::pair<int,int>> citiesMap;
 
+      /*
+       * Map all cities to their coordinates
+      */
       for (int j = 0; j < cities; ++j)
       {
          int x, y;
@@ -156,6 +169,10 @@ int main(int argc, char** argv)
          citiesMap[j] = city;
       }
 
+      /*
+       * Calculate distance of every city to every other city
+       * and merge them within UnionFind if they lie within distance
+      */
       for (int j = 0; j < cities; ++j)
          for (int k = j+1; k < cities; ++k)
          {
@@ -167,8 +184,10 @@ int main(int argc, char** argv)
                stateDesignator.merge(j, k);
          }
 
+      /*
+       * Assign all cities to state vectors. Pretty self explanatory
+      */
       bool citiesAssigned[1001] = {false};
-
       for (int j = 0; j < cities; ++j)
       {
          if (!(citiesAssigned[j]))
@@ -189,10 +208,18 @@ int main(int argc, char** argv)
          }
       }
 
+      /*
+       * Max number of edges is summation of n-i from i=1 to n which  is n(n-1)/2
+      */
       Edge* elist = new Edge[citiesMap.size()*(citiesMap.size() - 1) / 2];
       int* index = new int[citiesMap.size()*(citiesMap.size() - 1) / 2];
       int edgesInMst;
 
+      /*
+       * Create an edge between every city. This graph, with cities as vertices, will be our
+       * graph to run the MST on. Weights will be distances between cities. Also need to determine
+       * whether we are using a road (IE, cities in same state), or a railroad (not in same state)
+      */
       int l = 0;
       for (int j = 0; j < citiesMap.size(); ++j)
          for (int k = j + 1; k < citiesMap.size(); ++k)
@@ -202,6 +229,9 @@ int main(int argc, char** argv)
             double distance = sqrt((double)(a*a + b*b));
             bool isRoad = false;
 
+            /*
+             * Iterative process to determine whether we have a road
+            */
             for (int stateIndex = 0; stateIndex < states.size(); ++stateIndex)
             {
                if (isRoad)
@@ -225,6 +255,9 @@ int main(int argc, char** argv)
             elist[l++] = Edge(j, k, distance, isRoad);
          }
 
+      /*
+       * Call mst, then take the edges and add up road and railroad distance, then print rounded values
+      */
       mst(cities, l, elist, index, edgesInMst);
       double roadSize = 0;
       double railroadSize = 0;
@@ -238,6 +271,9 @@ int main(int argc, char** argv)
       }
 
       std::cout << "Case #" << i + 1  << ": " << states.size() << " " << (int)round(roadSize) << " " << (int)round(railroadSize) << std::endl;
+
+      delete[] elist;
+      delete[] index;
    }
 
    return 0;
