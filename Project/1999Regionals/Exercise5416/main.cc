@@ -1,9 +1,12 @@
 #include <iostream>
-#include <stack>
+#include <map>
+#include <vector>
 #include <algorithm>
 
-void doTheThing(int, int&, int&, bool[], int[], bool[2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2]);
-int dpTable[2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2];
+int doTheThing(std::vector<bool>&, bool[], int, int);
+int dpTable[262144];
+std::map<std::vector<bool>, int> stateMap;
+int numOfStates = 0;
 
 int board[18][2] = {{1,2},
                     {1,3},
@@ -36,14 +39,15 @@ int triangleLocations[9][3] = {{0,1,2},
 
 int main(int argc, char** argv)
 {
+   stateMap.clear();
    int games;
    int gameNumber = 1;
    std::cin >> games;
 
    for (int i = 0; i < games; ++i)
    {
-      bool lineOccupied[18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-      int triangleOccupant[9] = {-1,-1,-1,-1,-1,-1,-1,-1,-1};
+      std::vector<bool> linesOccupied = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+      bool trianglesOccupied[9] = {0,0,0,0,0,0,0,0,0};
 
       int numOfMoves;
       std::cin >> numOfMoves;
@@ -59,12 +63,12 @@ int main(int argc, char** argv)
          for (int k = 0; k < 18; ++k)
             if (vertex1 == board[k][0] && vertex2 == board[k][1])
             {
-               lineOccupied[k] = true;
+               linesOccupied[k] = true;
                for (int l = 0; l < 9; ++l)
-                  if (lineOccupied[triangleLocations[l][0]] && lineOccupied[triangleLocations[l][1]] && lineOccupied[triangleLocations[l][2]] && triangleOccupant[l] == -1)
+                  if (linesOccupied[triangleLocations[l][0]] && linesOccupied[triangleLocations[l][1]] && linesOccupied[triangleLocations[l][2]] && !(trianglesOccupied[l]))
                   {
-                     triangleOccupant[l] = player;
-                     playerScores[player] += 1;
+                     trianglesOccupied[l] = true;
+                     playerScores[player]++;
                      playerGoesAgain = true;
                   }
                break;
@@ -73,12 +77,10 @@ int main(int argc, char** argv)
          if (!playerGoesAgain)
             player = (player+1) % 2;
       }
-      bool visited[2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2] = {false};
-      std::cout << "CURRENT SCORES " << playerScores[0] << " " << playerScores[1] << std::endl;
-      doTheThing(player, playerScores[0], playerScores[1], lineOccupied, triangleOccupant, visited);
-      
-      std::cout << "POST SCORES "  << playerScores[0] << " " << playerScores[1] << std::endl;
-      
+
+      playerScores[player] += doTheThing(linesOccupied, trianglesOccupied, player, 9 - playerScores[0] - playerScores[1]);
+      playerScores[(player+1)%2] = 9 - playerScores[player];
+
       if (playerScores[0] > playerScores[1])
          std::cout << "Game " << gameNumber++ << ": A wins." << std::endl;
       else
@@ -88,90 +90,55 @@ int main(int argc, char** argv)
    return 0;
 }
 
-void doTheThing(int player, int& playerAScore, int& playerBScore, bool lineOccupant[], int triangleOccupant[], bool visited[2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2][2])
+int doTheThing(std::vector<bool>& linesOccupied, bool trianglesOccupied[], int player, int trianglesLeft)
 {
+   if (stateMap.count(linesOccupied))
+      return dpTable[stateMap[linesOccupied]];
+
+   stateMap[linesOccupied] = numOfStates;
    int possibleChoices = 0;
-   int possibleChoicesSet[18];
-
-   if (visited[lineOccupant[0]][lineOccupant[1]][lineOccupant[2]][lineOccupant[3]][lineOccupant[4]][lineOccupant[5]][lineOccupant[6]][lineOccupant[7]][lineOccupant[8]][lineOccupant[9]][lineOccupant[10]][lineOccupant[11]][lineOccupant[12]][lineOccupant[13]][lineOccupant[14]][lineOccupant[15]][lineOccupant[16]][lineOccupant[17]][player])
-   {
-      playerAScore = dpTable[lineOccupant[0]][lineOccupant[1]][lineOccupant[2]][lineOccupant[3]][lineOccupant[4]][lineOccupant[5]][lineOccupant[6]][lineOccupant[7]][lineOccupant[8]][lineOccupant[9]][lineOccupant[10]][lineOccupant[11]][lineOccupant[12]][lineOccupant[13]][lineOccupant[14]][lineOccupant[15]][lineOccupant[16]][lineOccupant[17]][0];
-      playerBScore = dpTable[lineOccupant[0]][lineOccupant[1]][lineOccupant[2]][lineOccupant[3]][lineOccupant[4]][lineOccupant[5]][lineOccupant[6]][lineOccupant[7]][lineOccupant[8]][lineOccupant[9]][lineOccupant[10]][lineOccupant[11]][lineOccupant[12]][lineOccupant[13]][lineOccupant[14]][lineOccupant[15]][lineOccupant[16]][lineOccupant[17]][1];
-      return;
-   }
-
-   visited[lineOccupant[0]][lineOccupant[1]][lineOccupant[2]][lineOccupant[3]][lineOccupant[4]][lineOccupant[5]][lineOccupant[6]][lineOccupant[7]][lineOccupant[8]][lineOccupant[9]][lineOccupant[10]][lineOccupant[11]][lineOccupant[12]][lineOccupant[13]][lineOccupant[14]][lineOccupant[15]][lineOccupant[16]][lineOccupant[17]][player] = true;
+   int possibleChoiceSet[18];
 
    for (int i = 0; i < 18; ++i)
-      if (!lineOccupant[i])
-         possibleChoicesSet[possibleChoices++] = i;
-
-   if (possibleChoices == 0)
-   {
-      dpTable[lineOccupant[0]][lineOccupant[1]][lineOccupant[2]][lineOccupant[3]][lineOccupant[4]][lineOccupant[5]][lineOccupant[6]][lineOccupant[7]][lineOccupant[8]][lineOccupant[9]][lineOccupant[10]][lineOccupant[11]][lineOccupant[12]][lineOccupant[13]][lineOccupant[14]][lineOccupant[15]][lineOccupant[16]][lineOccupant[17]][0] = playerAScore;
-      dpTable[lineOccupant[0]][lineOccupant[1]][lineOccupant[2]][lineOccupant[3]][lineOccupant[4]][lineOccupant[5]][lineOccupant[6]][lineOccupant[7]][lineOccupant[8]][lineOccupant[9]][lineOccupant[10]][lineOccupant[11]][lineOccupant[12]][lineOccupant[13]][lineOccupant[14]][lineOccupant[15]][lineOccupant[16]][lineOccupant[17]][1] = playerBScore;
-      return;
+      if (!linesOccupied[i])
+         possibleChoiceSet[possibleChoices++] = i;
+    
+    if (possibleChoices == 0)
+    {
+      dpTable[numOfStates++] = 0;
+      return 0;
    }
 
-   int maxScore = -1;
-   int lineChosen = -1;
+   int maxTriangles = 0;
 
    for (int i = 0; i < possibleChoices; ++i)
    {
-      bool tempLineOccupant[18];
-      int tempTriangleOccupant[18];
+      bool newTrianglesOccupied[9];
+      for (int i = 0; i < 9; ++i)
+         newTrianglesOccupied[i] = trianglesOccupied[i];
+
       bool playerGoesAgain = false;
-      int tempPlayerScores[2] = {0,0};
-
-      for (int j = 0; j < 18; ++j)
-      {
-         tempLineOccupant[j] = lineOccupant[j];
-         if (j < 9)
-            tempTriangleOccupant[i] = triangleOccupant[j];
-      }
-
-      tempLineOccupant[possibleChoicesSet[i]] = true;
+      bool newTrianglesFormed = 0;
+      linesOccupied[possibleChoiceSet[i]] = true;
 
       for (int j = 0; j < 9; ++j)
-         if (tempLineOccupant[triangleLocations[j][0]] && tempLineOccupant[triangleLocations[j][1]] && tempLineOccupant[triangleLocations[j][2]] && tempTriangleOccupant[j] == -1)
+         if (linesOccupied[triangleLocations[j][0]] && linesOccupied[triangleLocations[j][1]] && linesOccupied[triangleLocations[j][2]] && !(newTrianglesOccupied[j]))
          {
-            if (tempTriangleOccupant[j]== -1)
-            {
-               tempTriangleOccupant[j] = player;
-               playerGoesAgain = true;
-            }
-            tempPlayerScores[player] += 1;
-         }
-
-      doTheThing((player + (1-playerGoesAgain)) % 2, tempPlayerScores[0], tempPlayerScores[1], tempLineOccupant, tempTriangleOccupant, visited);
-
-      int tempMax = std::max(maxScore, tempPlayerScores[player]);
-      if (tempMax == tempPlayerScores[player])
-      {
-         lineChosen = possibleChoicesSet[i];
-         maxScore = tempMax;
-      }
-   }
-
-   lineOccupant[lineChosen] = true;
-   bool playerGoesAgain = false;
-   int playerScores[2] = {0,0};
-   for (int j = 0; j < 10; ++j)
-      if (lineOccupant[triangleLocations[j][0]] && lineOccupant[triangleLocations[j][1]] && lineOccupant[triangleLocations[j][2]])
-      {
-         if (triangleOccupant[j] == -1)
-         {
-            triangleOccupant[j] = player;
+            newTrianglesOccupied[j] = true;
+            newTrianglesFormed++;
             playerGoesAgain = true;
          }
-         playerScores[player]++;
-      }
 
-   doTheThing((player + (1-playerGoesAgain)) % 2, playerScores[0], playerScores[1], lineOccupant, triangleOccupant, visited);
+      int tempTrianglesLeft = trianglesLeft - newTrianglesFormed;
+      int totalTriangles = 0;
 
-   dpTable[lineOccupant[0]][lineOccupant[1]][lineOccupant[2]][lineOccupant[3]][lineOccupant[4]][lineOccupant[5]][lineOccupant[6]][lineOccupant[7]][lineOccupant[8]][lineOccupant[9]][lineOccupant[10]][lineOccupant[11]][lineOccupant[12]][lineOccupant[13]][lineOccupant[14]][lineOccupant[15]][lineOccupant[16]][lineOccupant[17]][0] = playerScores[0];
-   dpTable[lineOccupant[0]][lineOccupant[1]][lineOccupant[2]][lineOccupant[3]][lineOccupant[4]][lineOccupant[5]][lineOccupant[6]][lineOccupant[7]][lineOccupant[8]][lineOccupant[9]][lineOccupant[10]][lineOccupant[11]][lineOccupant[12]][lineOccupant[13]][lineOccupant[14]][lineOccupant[15]][lineOccupant[16]][lineOccupant[17]][1] = playerScores[1];
-   playerAScore = playerScores[0];
-   playerBScore = playerScores[1];
-
+      if (playerGoesAgain)
+         totalTriangles = newTrianglesFormed + doTheThing(linesOccupied, newTrianglesOccupied, player, tempTrianglesLeft);
+      else
+         totalTriangles = newTrianglesFormed + tempTrianglesLeft - doTheThing(linesOccupied, newTrianglesOccupied, (player+1)%2, tempTrianglesLeft);
+      maxTriangles = std::max(maxTriangles, totalTriangles);
+      linesOccupied[possibleChoiceSet[i]] = false;
+   }
+   dpTable[numOfStates++] = maxTriangles;
+   return maxTriangles;
 }
