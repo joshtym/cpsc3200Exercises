@@ -163,6 +163,8 @@ int main(int argc, char** argv)
       std::vector<std::string> devicePlugs;
       std::vector<std::pair<std::string,std::string>> adapters;
       std::map<int,std::string> mapOfConfusion;
+      std::vector<std::string> nodeConnectors;
+      nodeConnectors.push_back("EMPTY");
 
       int numOfPlugs;
       std::cin >> numOfPlugs;
@@ -203,37 +205,43 @@ int main(int argc, char** argv)
 
       for (int j = 0; j < numOfPlugs; ++j)
       {
-         mapOfConfusion[node] = wallPlugs[j];
+         //mapOfConfusion[node] = wallPlugs[j];
+         nodeConnectors.push_back(wallPlugs[j]);
          G.add_edge(source,node++,1);
       }
 
+      int startingIndexAdap = node;
       for (int j = 0; j < numOfAdapters; ++j)
       {
-         mapOfConfusion[node] = adapters[j].first;
+         //mapOfConfusion[node] = adapters[j].first;
+         nodeConnectors.push_back(adapters[j].first);
+         int k;
 
-         for (int k = 1; k <= numOfPlugs; ++k)
-            if (adapters[j].second == wallPlugs[k])
+         for (k = 1; k <= numOfPlugs; ++k)
+            if (adapters[j].second == nodeConnectors[k])
                G.add_edge(k,node,1);
 
-         for (int k = numOfPlugs+1; k < node; ++k)
-            if (adapters[j].second == mapOfConfusion[k])
+         for (k = k; k < node; ++k)
+            if (adapters[j].second == nodeConnectors[k])
                G.add_edge(k,node,99999999);
 
          for (int k = 0; k < j; ++k)
             if (adapters[j].first == adapters[k].second)
-               G.add_edge(node,k+numOfPlugs+1,99999999);
+               G.add_edge(node,k+startingIndexAdap,99999999);
+
          node++;
       }
 
       int nodesToDevices = node;
       for (int j = 0; j < numOfDevices; ++j)
       {
-         int k = 1;
-         while (k++ <= numOfPlugs)
-            if (mapOfConfusion[k] == devicePlugs[j])
+         int k;
+         for (k = 1; k <= numOfPlugs; ++k)
+            if (nodeConnectors[k] == devicePlugs[j])
                G.add_edge(k,node,1);
-         while (k++ < nodesToDevices)
-            if (mapOfConfusion[k] == devicePlugs[j])
+
+         for (k = k; k < nodesToDevices; ++k)
+            if (nodeConnectors[k] == devicePlugs[j])
                G.add_edge(k,node,99999999);
 
          G.add_edge(node++,sink,1);
