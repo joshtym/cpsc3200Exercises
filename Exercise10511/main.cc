@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <cassert>
+#include <set>
 #include <unordered_set>
 #include <string>
 #include <sstream>
@@ -147,35 +148,28 @@ int network_flow(Graph &G, int s, int t)
   return flow;
 }
 
-/*int main(void)
-{
-  Graph G(100);
-  int s, t, u, v, cap, flow;
-
-  cin >> s >> t;
-  while (cin >> u >> v >> cap) {
-    G.add_edge(u, v, cap);
-  }
-  
-  flow = network_flow(G, s, t);
-  cout << "maximum flow = " << flow << endl;
-  
-  return 0;
-}*/
 int main(int argc, char** argv)
 {
    int testCases;
    std::cin >> testCases;
    std::cin.ignore(2);
+   bool firstTime = true;
 
    for (int i = 0; i < testCases; ++i)
    {
+      if (!firstTime)
+         std::cout << std::endl;
+      else
+         firstTime = false;
+
       std::unordered_set<std::string> clubs;
       std::unordered_set<std::string> uniqueParties;
-      std::map<std::string, std::string> peopleToParties
+      std::vector<std::string> people;
+      std::vector<std::string> parties;
       std::vector<std::vector<std::string>> peopleToClubs;
       std::vector<std::string> nodeDesignations;
       int clubCount = 0;
+      int uniquePartyCount = 0;
 
       std::string inputLine;
       while(std::getline(std::cin,inputLine,'\n') && inputLine != "")
@@ -188,11 +182,12 @@ int main(int argc, char** argv)
 
          iss >> name >> party;
          people.push_back(name);
+         parties.push_back(party);
 
          if (!(uniqueParties.count(party)))
          {
+            uniquePartyCount++;
             uniqueParties.insert(party);
-            parties.push_back(party);
          }
 
          while(iss >> temp)
@@ -207,9 +202,10 @@ int main(int argc, char** argv)
          peopleToClubs.push_back(listOfClubs);
       }
 
-      int nodes = parties.size() + people.size() + clubCount + 2;
+      int nodes = uniquePartyCount + people.size() + clubCount + 2;
       Graph G(nodes);
       int source = 0;
+      nodeDesignations.push_back("SOURCE");
       int currentNode = 0;
       int sink = nodes - ++currentNode;
 
@@ -219,9 +215,9 @@ int main(int argc, char** argv)
       else
          weightToParties = parties.size() / 2;
 
-      for (int j = 0; j < parties.size(); ++j)
+      for (std::unordered_set<std::string>::iterator it = uniqueParties.begin(); it != uniqueParties.end(); ++it)
       {
-         nodeDesignations[currentNode] = parties[j];
+         nodeDesignations.push_back(*it);
          G.add_edge(0,currentNode++,weightToParties);
       }
 
@@ -230,9 +226,41 @@ int main(int argc, char** argv)
       for (int j = 0; j < people.size(); ++j)
       {
          for (int k = 1; k < residentIndex; ++k)
-            if (nodeDesignation[k] == )
-         G.add_edge(nodeDesignation[])
+            if (parties[j] == nodeDesignations[k])
+            {
+               nodeDesignations.push_back(people[j]);
+               G.add_edge(k,currentNode,1);
+            }
+         currentNode++;
       }
+
+      int clubIndex = currentNode;
+
+      // DRAW LINES TO CLUBS THEN TO THE SOURCE NODE
+      for (std::unordered_set<std::string>::iterator it = clubs.begin(); it != clubs.end(); ++it)
+      {
+         for (int j = 0; j < people.size(); ++j)
+            for (int k = 0; k < peopleToClubs[j].size(); ++k)
+               if (peopleToClubs[j][k] == (*it))
+               {
+                  G.add_edge(residentIndex + j, currentNode, 1);
+                  break;
+               }
+
+         nodeDesignations.push_back(*it);
+         G.add_edge(currentNode++, sink, 1);
+      }
+      int flow = network_flow(G, source, sink);
+
+      if (flow == clubCount)
+      {
+         for (int j = residentIndex; j < clubIndex; ++j)
+            for (EdgeIter it = G.nbr[j].begin(); it != G.nbr[j].end(); ++it)
+               if ((*it).flow != 0)
+                  std::cout << nodeDesignations[j] << " " << nodeDesignations[(*it).to] << std::endl;
+      }
+      else
+         std::cout << "Impossible." << std::endl;
    }
    return 0;
 }
