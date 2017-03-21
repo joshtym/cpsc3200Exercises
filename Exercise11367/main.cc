@@ -1,113 +1,110 @@
 #include <iostream>
 #include <algorithm>
-#include <cassert>
 #include <vector>
-#include <utility>
+#include <cassert>
+#include <queue>
 
 /*
- * Dijkstra's Algorithm
+ * Dijkstra's Algorithm for sparse graphs
  *
  * Author: Howard Cheng
- * Reference:
- *   Ian Parberry's "Problems on Algorithms", page 102.
  *
  * Given a weight matrix representing a graph and a source vertex, this
  * algorithm computes the shortest distance, as well as path, to each
  * of the other vertices.  The paths are represented by an inverted list,
  * such that if v preceeds immediately before w in a path from the
  * source to vertex w, then the path P[w] is v.  The distances from
- * the source to v is given in D[v] (DISCONNECT if not connected).
+ * the source to v is given in D[v] (-1 if not connected).
  *
  * Call get_path to recover the path.
  *
  * Note: Dijkstra's algorithm only works if all weight edges are
  *       non-negative.
  *
+ * This version works well if the graph is not dense.  The complexity
+ * is O((n + m) log (n + m)) where n is the number of vertices and
+ * m is the number of edges.
+ *
  */
-
 
 using namespace std;
 
-const int MAX_NODES = 101000;
-const int DISCONNECT = -1;
+
+struct Edge {
+  int to;
+  int weight;       // can be double or other numeric type
+  Edge(int t, int w)
+    : to(t), weight(w) { }
+};
+  
+typedef vector<Edge>::iterator EdgeIter;
+
+struct Graph {
+  vector<Edge> *nbr;
+  int num_nodes;
+  Graph(int n)
+    : num_nodes(n)
+  {
+    nbr = new vector<Edge>[num_nodes];
+  }
+
+  ~Graph()
+  {
+    delete[] nbr;
+  }
+
+  // note: There is no check on duplicate edge, so it is possible to
+  // add multiple edges between two vertices
+  //
+  // If this is an undirected graph, be sure to add an edge both
+  // ways
+  void add_edge(int u, int v, int weight)
+  {
+    nbr[u].push_back(Edge(v, weight));
+  }
+};
 
 /* assume that D and P have been allocated */
-void dijkstra(int graph[MAX_NODES][MAX_NODES], int n, int src, int D[], 
-         int P[])
+void dijkstra(const Graph &G, int src, vector<int> &D, vector<int> &P)
 {
-  char used[MAX_NODES];
-  int fringe[MAX_NODES];
-  int f_size;
-  int v, w, j, wj;
-  int best, best_init;
+  typedef pair<int,int> pii;
 
-  f_size = 0;
-  for (v = 0; v < n; v++) {
-    if (graph[src][v] != DISCONNECT && src != v) {
-      D[v] = graph[src][v];
-      P[v] = src;
-      fringe[f_size++] = v;
-      used[v] = 1;
-    } else {
-      D[v] = DISCONNECT;
-      P[v] = -1;
-      used[v] = 0;
-    }
-  }
+  int n = G.num_nodes;
+  vector<bool> used(n, false);
+  priority_queue<pii, vector<pii>,  greater<pii> > fringe;
+
+  D.resize(n);
+  P.resize(n);
+  fill(D.begin(), D.end(), -1);
+  fill(P.begin(), P.end(), -1);
+
   D[src] = 0;
-  P[src] = -1;
-  used[src] = 1;
+  fringe.push(make_pair(D[src], src));
 
-  best_init = 1;
-  while (best_init) {
-    /* find unused vertex with smallest D */
-    best_init = 0;
-    for (j = 0; j < f_size; j++) {
-      v = fringe[j];
-      assert(D[v] != DISCONNECT);
-      if (!best_init || D[v] < best) {
-        best = D[v];
-        w = v;
-        wj = j;
-        best_init = 1;
-      }
-    }
+  while (!fringe.empty()) {
+    pii next = fringe.top();
+    fringe.pop();
+    int u = next.second;
+    if (used[u]) continue;
+    used[u] = true;
 
-    if (best_init) {
-      assert(D[w] != DISCONNECT);
-      assert(fringe[wj] == w);
-
-      /* get rid of w from fringe */
-      f_size--;
-      for (j = wj; j < f_size; j++) {
-        fringe[j] = fringe[j+1];
-      }
-
-      /* update distances and add new vertices to fringe */
-      for (v = 0; v < n; v++) {
-        if (v != src && graph[w][v] != DISCONNECT) {
-          if (D[v] == DISCONNECT || D[w] + graph[w][v] < D[v]) {
-            D[v] = D[w] + graph[w][v];
-            P[v] = w;
-          } else if (D[w] + graph[w][v] == D[v]) {
-            /* put tie-breaker here */
-          }
-          if (!used[v]) {
-            used[v] = 1;
-            fringe[f_size++] = v;
-          }
-        }
+    for (EdgeIter it = G.nbr[u].begin(); it != G.nbr[u].end(); ++it) {
+      int v = it->to;
+      int weight = it->weight + next.first;
+      if (used[v]) continue;
+      if (D[v] == -1 || weight < D[v]) {
+  D[v] = weight;
+  P[v] = u;
+  fringe.push(make_pair(D[v], v));
       }
     }
   }
-  D[src] = 0;
 }
+
 
 int main(int argc, char** argv)
 {
    int cities, roads, queries;
-   int graph[MAX_NODES][MAX_NODES];
-   int P[MAX_NODES], D[MAX_NODES];
    int cityConnections[1000][1000];
    int fuelPrice[1000];
    std::cin >> cities >> roads;
@@ -131,24 +128,22 @@ int main(int argc, char** argv)
    for (int i = 0; i < queries; ++i)
    {
       int startingCity, endCity, capacity;
-      //std::vector<std::pair<int,int>> nodeDesignations;
       std::cin >> startingCity >> endCity >> capacity;
+      Graph G(cities * (capacity+1));
+      std::vector<int> D, P;
 
-      for (int j = 0; j < MAX_NODES; ++j)
-         for (int k = 0; k < MAX_NODES; ++k)
-            graph[j][k] = DISCONNECT;
-
-      int numOfNodes = cities * (capacity+1);
-      //for (int j = 0; j < cities; ++j)
-         //for (int k = 0; k <= capacity; ++k)
-           // nodeDesignations.push_back(std::make_pair(i,j));
+      for (int j = 0; j < cities*(capacity+1); ++j)
+      {
+         D.push_back(0);
+         P.push_back(0);
+      }
 
       int currentNode = 0;
       for (int j = 0; j < cities; ++j)
       {
          for (int k = 0; k < capacity; ++k)
          {
-            graph[currentNode][currentNode+1] = fuelPrice[j];
+            G.add_edge(currentNode, currentNode+1, fuelPrice[j]);
             currentNode++;
          }
          currentNode++;
@@ -161,11 +156,19 @@ int main(int argc, char** argv)
                {
                   int capacityLeftAfterTravel = capacity - cityConnections[j][l];
                   if (capacityLeftAfterTravel >= 0)
-                     graph[j*(capacity+1) + k][l*(capacity+1) + capacityLeftAfterTravel] = 0;
+                     G.add_edge(j*(capacity+1) + k, l*(capacity+1) + capacityLeftAfterTravel, 0);
                }
 
-      dijkstra(graph, numOfNodes, (startingCity-1)*(capacity+1), D, P);
-      std::cout << D[(endCity-1)*(capacity+1)] << std::endl;
+      dijkstra(G, (startingCity-1)*(capacity+1), D, P);
+      int distance = D[(endCity - 1) * (capacity+1)];
+
+      for (int j = 0; j < cities*(capacity+1); ++j)
+         std::cout << D[j] << std::endl;
+
+      if (distance == -1)
+         std::cout << "impossible." << std::endl;
+      else
+         std::cout << distance << std::endl;
    }
 
    return 0;
