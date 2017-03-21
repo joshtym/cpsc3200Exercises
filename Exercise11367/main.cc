@@ -128,7 +128,7 @@ int main(int argc, char** argv)
    for (int i = 0; i < queries; ++i)
    {
       int startingCity, endCity, capacity;
-      std::cin >> startingCity >> endCity >> capacity;
+      std::cin >> capacity >> startingCity >> endCity;
       Graph G(cities * (capacity+1));
       std::vector<int> D, P;
 
@@ -154,16 +154,15 @@ int main(int argc, char** argv)
             for (int l = 0; l < cities; ++l)
                if (l != j && cityConnections[j][l] != 0)
                {
-                  int capacityLeftAfterTravel = capacity - cityConnections[j][l];
+                  int capacityLeftAfterTravel = k - cityConnections[j][l];
                   if (capacityLeftAfterTravel >= 0)
                      G.add_edge(j*(capacity+1) + k, l*(capacity+1) + capacityLeftAfterTravel, 0);
                }
 
-      dijkstra(G, (startingCity-1)*(capacity+1), D, P);
-      int distance = D[(endCity - 1) * (capacity+1)];
-
-      for (int j = 0; j < cities*(capacity+1); ++j)
-         std::cout << D[j] << std::endl;
+      int firstNode = startingCity*(capacity+1);
+      int secondNode = endCity*(capacity+1);
+      dijkstra(G, firstNode, D, P);
+      int distance = D[secondNode];
 
       if (distance == -1)
          std::cout << "impossible." << std::endl;
