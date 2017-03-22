@@ -1,3 +1,15 @@
+/*
+ * Solution to exercise 11367 UVA. Utilizes dijkstra's algorithm to find shortest distance,
+ * if there is one from one city to another. This uses Howard Cheng's dijkstra_sparse code
+ * to search. We create an initial graph with all the cities and 101 nodes for each city
+ * to denote capacity (101 because 0 through 100 inclusive). We then take in queries and
+ * feed in the graph to the dijkstra function. Note that I've modified the 
+ * dijkstra function to also take in the tank capacity so that we can filter out any possible 
+ * checks where going to a node is not possible (IE, adding one litre of fuel at city A when
+ * we are already at capacity).
+ *
+ * Author: Joshua Tymburski
+*/
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -121,9 +133,23 @@ int main(int argc, char** argv)
    int fuelPrice[1000];
    std::vector<int> D, P;
 
+   /*
+    * Pre-initialize as required by the dijkstra function
+   */
+   for (int j = 0; j < 101000; ++j)
+   {
+      D.push_back(0);
+      P.push_back(0);
+   }
+
    for (int i = 0; i < cities; ++i)
       std::cin >> fuelPrice[i];
 
+   /*
+    * Initialize our cityConnections to 0, then
+    * populate. Distance 0 will mean they are not
+    * connected directly
+   */
    for (int i = 0; i < 1000; ++i)
       for (int j = 0; j < 1000; ++j)
          cityConnections[i][j] = 0;
@@ -136,28 +162,26 @@ int main(int argc, char** argv)
       cityConnections[cityTwo][cityOne] = distance;
    }
 
+   Graph G(101000);
+   int currentNode = 0;
 
-   for (int j = 0; j < 101000; ++j)
-   {
-      D.push_back(0);
-      P.push_back(0);
-   }
-
-   Graph test(101000);
-   int testNode = 0;
-
+   /*
+    * Add edges to fill up with one litre at fuel price
+    * at city j
+   */
    for (int j = 0; j < cities; ++j)
    {
       for (int k = 0; k < 100; ++k)
       {
-         test.add_edge(testNode, testNode+1, fuelPrice[j]);
-         testNode++;
+         G.add_edge(currentNode, currentNode+1, fuelPrice[j]);
+         currentNode++;
       }
-
-      testNode++;
+      currentNode++;
    }
 
-
+   /*
+    * Add edges to go from city A to B if we have the capacity to
+   */
    for (int j = 0; j < cities; ++j)
       for (int k = 0; k <= 100; ++k)
          for (int l = 0; l < cities; ++l)
@@ -165,10 +189,13 @@ int main(int argc, char** argv)
             {
                int capacityLeftAfterTravel = k - cityConnections[j][l];
                if (capacityLeftAfterTravel >= 0)
-                  test.add_edge(j*101 + k, l*101 + capacityLeftAfterTravel, 0);
+                  G.add_edge(j*101 + k, l*101 + capacityLeftAfterTravel, 0);
             }
 
 
+   /*
+    * Do all queries. Pretty self explanatory
+   */
    std::cin >> queries;
    for (int i = 0; i < queries; ++i)
    {
@@ -177,7 +204,8 @@ int main(int argc, char** argv)
 
       int firstNode = startingCity*101;
       int secondNode = endCity*101;
-      dijkstra(test, firstNode, D, P, capacity);
+      dijkstra(G, firstNode, D, P, capacity);
+
       int distance = D[secondNode];
 
       if (distance == -1)
