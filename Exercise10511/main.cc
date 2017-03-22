@@ -1,3 +1,14 @@
+/*
+ * Solution to UVA Exercise 10511. Uses network flow to solve the problem
+ * by splitting the problem as follows. We have a source node which flows
+ * out to the party nodes (each with weight strictly less than half of the
+ * total selected count which will be the number of clubs there are). The party nodes
+ * connect to the resident nodes which connect to the club nodes which connect to the sink,
+ * all with weight 1. We compute max flow and re-examine the graph to see which
+ * lines have flow. Utilizes Howard Cheng's Network Flow algorithm
+ *
+ * Author: Joshua Tymburski
+*/
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -157,13 +168,26 @@ int main(int argc, char** argv)
 
    for (int i = 0; i < testCases; ++i)
    {
+      /*
+       * Semantics for presentation......
+      */
       if (!firstTime)
          std::cout << std::endl;
       else
          firstTime = false;
 
+      /*
+       * Using unorded set will allow us to keep track
+       * of how many unique clubs and parties there are. 
+       * Unordered has lower insert complexity than ordered (I think)
+      */
       std::unordered_set<std::string> clubs;
       std::unordered_set<std::string> uniqueParties;
+
+      /*
+       * Data storage. Node designations lets us store what each
+       * numbered node on the graph is
+      */
       std::vector<std::string> people;
       std::vector<std::string> parties;
       std::vector<std::vector<std::string>> peopleToClubs;
@@ -171,6 +195,10 @@ int main(int argc, char** argv)
       int clubCount = 0;
       int uniquePartyCount = 0;
 
+      /*
+       * Semantics to get data. Gets people, party and clubs and keeps
+       * a running track of unique parties and unique clubs
+      */
       std::string inputLine;
       while(std::getline(std::cin,inputLine,'\n') && inputLine != "")
       {
@@ -202,25 +230,38 @@ int main(int argc, char** argv)
          peopleToClubs.push_back(listOfClubs);
       }
 
-      int nodes = uniquePartyCount + people.size() + clubCount + 2;
-      Graph G(nodes);
+      /*
+       * Create Graph, source and sink nodes
+      */
+      int numOfNodes = uniquePartyCount + people.size() + clubCount + 2;
+      Graph G(numOfNodes);
       int source = 0;
       nodeDesignations.push_back("SOURCE");
-      int currentNode = 0;
-      int sink = nodes - ++currentNode;
+      int currentNode = 1;
+      int sink = numOfNodes - currentNode;
 
+      /*
+       * Limit number of party representatives to < 1/2
+      */
       int weightToParties;
-      if (parties.size() % 2 == 0)
-         weightToParties = parties.size() / 2 - 1;
+      if (clubCount % 2 == 0)
+         weightToParties = clubCount / 2 - 1;
       else
-         weightToParties = parties.size() / 2;
+         weightToParties = clubCount / 2;
 
+      /*
+       * Create nodes from souce to parties
+      */
       for (std::unordered_set<std::string>::iterator it = uniqueParties.begin(); it != uniqueParties.end(); ++it)
       {
          nodeDesignations.push_back(*it);
          G.add_edge(0,currentNode++,weightToParties);
       }
 
+      /*
+       * Store where our resident nodes start and populate the graph edges from parties to residents
+       * as well as populate our designation vector
+      */
       int residentIndex = currentNode;
 
       for (int j = 0; j < people.size(); ++j)
@@ -234,9 +275,12 @@ int main(int argc, char** argv)
          currentNode++;
       }
 
+      /*
+       * Store club starting index and iterate through the unique clubs set and create the edges
+       * from resident to clubs and from clubs to the sink node
+      */
       int clubIndex = currentNode;
 
-      // DRAW LINES TO CLUBS THEN TO THE SOURCE NODE
       for (std::unordered_set<std::string>::iterator it = clubs.begin(); it != clubs.end(); ++it)
       {
          for (int j = 0; j < people.size(); ++j)
@@ -250,6 +294,12 @@ int main(int argc, char** argv)
          nodeDesignations.push_back(*it);
          G.add_edge(currentNode++, sink, 1);
       }
+
+      /*
+       * Get flow. If flow is the number of unique clubs, then we've successfully allocated
+       * the council members are print them out via their node designations. Else, print
+       * impossible
+      */
       int flow = network_flow(G, source, sink);
 
       if (flow == clubCount)
