@@ -4,24 +4,21 @@ int fishInFirstFive[25];
 int deprecationRate[25];
 int distanceToLake[24];
 //int dpTable[25] = {0};
-int testDpTable[192][25];
-int otherTable[192][25];
+int testDpTable[193][25];
+int otherTable[193][25];
 int n, h;
 
-int getFishCount(int, int, int[]);
 int testGetFishCount(int, int);
 
 int main(int argc, char** argv)
 {
    bool firstTime = true;
-   while (std::cin >> n && n != 0)
+   while (std::cin >> n >> h && n != 0)
    {
       if (firstTime)
          firstTime = false;
       else
          std::cout << std::endl;
-
-      std::cin >> h;
 
       for (int i = 0; i < n; ++i)
          std::cin >> fishInFirstFive[i];
@@ -32,109 +29,53 @@ int main(int argc, char** argv)
       for (int i = 0; i < n - 1; ++i)
          std::cin >> distanceToLake[i];
 
-      for (int i = 0; i < 192; ++i)
+      for (int i = 0; i < 193; ++i)
          for (int j = 0; j < 25; ++j)
+         {
             testDpTable[i][j] = -1;
+            otherTable[i][j] = 0;
+         }
 
       for (int i = 0; i < 25; ++i)
-      {
          testDpTable[0][i] = 0;
-         otherTable[0][i] = 0;
-      }
 
-      //int dpTable[25] = {0};
-      //int fishCaught = getFishCount(h*60,  0, dpTable);
       testGetFishCount(h*60, 0);
 
-      int fishCaught = -1;
-      int startingIndex;
+      int timeIntervalsRemaining = h * 60 / 5;
+      int maxFishCaught = -1;
 
-      for (int i = 0; i < 192; ++i)
+      for (int i = 0; i < n; ++i)
       {
-         int tempFishCaught = std::max(fishCaught, testDpTable[i][0]);
-         if (tempFishCaught == testDpTable[i][0])
-            startingIndex = i;
-      }
+         int currFishCaught = -1;
+         int currIndex = 0;
 
-      for (int i = 0; i < n-1; ++i)
-      {
-         std::cout << otherTable[]
-         if (i != n-2)
-      }
+         for (int j = 0; j <= timeIntervalsRemaining; ++j)
+         {
+            int tempFishCaught = std::max(currFishCaught, testDpTable[j][i]);
+            if (tempFishCaught == testDpTable[j][i])
+            {
+               currFishCaught = tempFishCaught;
+               currIndex = j;
+            }
+         }
 
+         if (i == 0)
+            maxFishCaught = currFishCaught;
 
-      std::cout << fishCaught << std::endl;
-
-      /*for (int i = 0; i < n; ++i)
-      {
-         std::cout << dpTable[i];
+         std::cout << otherTable[currIndex][i];
          if (i != n-1)
+         {
             std::cout << ", ";
-      }*/
+            timeIntervalsRemaining -= (otherTable[currIndex][i] / 5);
+            timeIntervalsRemaining -= distanceToLake[i];
+         }
+      }
 
-		//std::cout << std::endl << "Number of fish expected: " << fishCaught << std::endl;
+      std::cout << std::endl << "Number of fish expected: " << maxFishCaught << std::endl;
    }
 
 	return 0;
 }
-
-int getFishCount(int timeLeft, int lake, int dpTable[])
-{
-	if (timeLeft < 5)
-		return 0;
-
-	if (lake == n - 1)
-	{
-		int numberOfFish = 0;
-		int fishToBeCaught = fishInFirstFive[lake];
-      int timeSpent = 0;
-		while (timeLeft >= 5)
-		{
-			numberOfFish += fishToBeCaught;
-			fishToBeCaught -= deprecationRate[lake];
-
-         if (fishToBeCaught < 0)
-            fishToBeCaught == 0;
-
-			timeLeft -= 5;
-         timeSpent += 5;
-		}
-      dpTable[lake] = timeSpent;
-		return numberOfFish;
-	}
-
-	
-	int maxIntervalsHere = timeLeft / 5;
-	int maxNumberOfFish = -1;
-
-	for (int i = 0; i <= maxIntervalsHere; ++i)
-	{
-		int fishToBeCaught = fishInFirstFive[lake];
-		int numberOfFish = 0;
-      int tempTime = timeLeft;
-		for (int j = 0; j < i; ++j)
-		{
-			tempTime -= 5;
-			numberOfFish += fishToBeCaught;
-			fishToBeCaught -= deprecationRate[lake];
-
-         if (fishToBeCaught < 0)
-            fishToBeCaught = 0;
-		}
-      int tempDpTable[25] = {0};
-		numberOfFish += getFishCount(tempTime - (distanceToLake[lake]*5), lake + 1, tempDpTable);
-		maxNumberOfFish = std::max(maxNumberOfFish, numberOfFish);
-
-      if (maxNumberOfFish == numberOfFish)
-      {
-         dpTable[lake] = i * 5;
-         for (int i = lake + 1; i < n; ++i)
-            dpTable[i] = tempDpTable[i];
-      }
-	}
-	return maxNumberOfFish;
-}
-
 
 int testGetFishCount(int timeLeft, int currLake)
 {
@@ -145,7 +86,6 @@ int testGetFishCount(int timeLeft, int currLake)
    {
       int numberOfFish = 0;
       int fishToBeCaught = fishInFirstFive[currLake];
-      int timeSpent = 0;
       int temp = timeLeft;
       while (temp >= 5)
       {
@@ -153,11 +93,12 @@ int testGetFishCount(int timeLeft, int currLake)
          fishToBeCaught -= deprecationRate[currLake];
 
          if (fishToBeCaught < 0)
-            fishToBeCaught == 0;
+            fishToBeCaught = 0;
 
          temp -= 5;
       }
       
+      otherTable[timeLeft / 5][currLake] = timeLeft;
       return testDpTable[timeLeft / 5][currLake] = numberOfFish;
    }
 
@@ -169,6 +110,7 @@ int testGetFishCount(int timeLeft, int currLake)
       int fishToBeCaught = fishInFirstFive[currLake];
       int numberOfFish = 0;
       int tempTime = timeLeft;
+
       for (int j = 0; j < i; ++j)
       {
          tempTime -= 5;
@@ -181,17 +123,14 @@ int testGetFishCount(int timeLeft, int currLake)
 
       int timeLeftAtNextLake = tempTime - (distanceToLake[currLake]*5);
       if (timeLeftAtNextLake >= 0)
-         numberOfFish += testGetFishCount(tempTime - (distanceToLake[currLake]*5), currLake + 1);
-      maxNumberOfFish = std::max(maxNumberOfFish, numberOfFish);
+         numberOfFish += testGetFishCount(timeLeftAtNextLake, currLake + 1);
 
-      if (maxNumberOfFish == numberOfFish)
+      int tempMax = std::max(maxNumberOfFish, numberOfFish);
+      if (tempMax == numberOfFish)
       {
+         maxNumberOfFish = std::max(maxNumberOfFish, numberOfFish);
          testDpTable[timeLeft / 5][currLake] = maxNumberOfFish;
-
-         if (timeLeftAtNextLake >= 0)
-            otherTable[timeLeft / 5][currLake] = timeLeftAtNextLake / 5;
-         else
-            otherTable[timeLeft / 5][currLake] = 0;
+         otherTable[timeLeft / 5][currLake] = i*5;
       }
    }
    return testDpTable[timeLeft / 5][currLake];
