@@ -3,9 +3,9 @@
 #include <vector>
 #include <algorithm>
 
-int doTheThing(std::vector<bool>&, bool[], int, int);
+int doTheThing(std::vector<bool>&, bool[], int);
+unsigned int getStateNumber(std::vector<bool>&);
 int dpTable[262144];
-std::map<std::vector<bool>, int> stateMap;
 int numOfStates = 0;
 
 int board[18][2] = {{1,2},
@@ -39,10 +39,15 @@ int triangleLocations[9][3] = {{0,1,2},
 
 int main(int argc, char** argv)
 {
-   stateMap.clear();
    int games;
    int gameNumber = 1;
    std::cin >> games;
+
+   for (int j = 0; j < 262144; ++j)
+      if (j != 262144)
+         dpTable[j] = -1;
+      else
+         dpTable[j] = 0;
 
    for (int i = 0; i < games; ++i)
    {
@@ -78,7 +83,7 @@ int main(int argc, char** argv)
             player = (player+1) % 2;
       }
 
-      playerScores[player] += doTheThing(linesOccupied, trianglesOccupied, player, 9 - playerScores[0] - playerScores[1]);
+      playerScores[player] += doTheThing(linesOccupied, trianglesOccupied, 9 - playerScores[0] - playerScores[1]);
       playerScores[(player+1)%2] = 9 - playerScores[player];
 
       if (playerScores[0] > playerScores[1])
@@ -90,55 +95,63 @@ int main(int argc, char** argv)
    return 0;
 }
 
-int doTheThing(std::vector<bool>& linesOccupied, bool trianglesOccupied[], int player, int trianglesLeft)
+int doTheThing(std::vector<bool>& linesOccupied, bool trianglesOccupied[9], int trianglesLeft)
 {
-   if (stateMap.count(linesOccupied))
-      return dpTable[stateMap[linesOccupied]];
+   unsigned int stateNumber = getStateNumber(linesOccupied);
 
-   stateMap[linesOccupied] = numOfStates;
+   if (dpTable[stateNumber] != -1)
+      return dpTable[stateNumber];
+
    int possibleChoices = 0;
    int possibleChoiceSet[18];
 
    for (int i = 0; i < 18; ++i)
       if (!linesOccupied[i])
          possibleChoiceSet[possibleChoices++] = i;
-    
-    if (possibleChoices == 0)
-    {
-      dpTable[numOfStates++] = 0;
-      return 0;
-   }
 
    int maxTriangles = 0;
+   int newTriangleIndices[9];
+   int newTrianglesFormed;
 
    for (int i = 0; i < possibleChoices; ++i)
    {
-      bool newTrianglesOccupied[9];
-      for (int i = 0; i < 9; ++i)
-         newTrianglesOccupied[i] = trianglesOccupied[i];
-
+      newTrianglesFormed = 0;
       bool playerGoesAgain = false;
-      bool newTrianglesFormed = 0;
       linesOccupied[possibleChoiceSet[i]] = true;
 
       for (int j = 0; j < 9; ++j)
-         if (linesOccupied[triangleLocations[j][0]] && linesOccupied[triangleLocations[j][1]] && linesOccupied[triangleLocations[j][2]] && !(newTrianglesOccupied[j]))
+         if (linesOccupied[triangleLocations[j][0]] && linesOccupied[triangleLocations[j][1]] && linesOccupied[triangleLocations[j][2]] && !(trianglesOccupied[j]))
          {
-            newTrianglesOccupied[j] = true;
-            newTrianglesFormed++;
+            trianglesOccupied[j] = true;
+            newTriangleIndices[newTrianglesFormed++] = j;
             playerGoesAgain = true;
          }
 
-      int tempTrianglesLeft = trianglesLeft - newTrianglesFormed;
+      int newTrianglesLeft = trianglesLeft - newTrianglesFormed;
       int totalTriangles = 0;
 
       if (playerGoesAgain)
-         totalTriangles = newTrianglesFormed + doTheThing(linesOccupied, newTrianglesOccupied, player, tempTrianglesLeft);
+         totalTriangles = newTrianglesFormed + doTheThing(linesOccupied, trianglesOccupied, newTrianglesLeft);
       else
-         totalTriangles = newTrianglesFormed + tempTrianglesLeft - doTheThing(linesOccupied, newTrianglesOccupied, (player+1)%2, tempTrianglesLeft);
+         totalTriangles = newTrianglesFormed + (newTrianglesLeft - doTheThing(linesOccupied, trianglesOccupied, newTrianglesLeft));
+
       maxTriangles = std::max(maxTriangles, totalTriangles);
+
       linesOccupied[possibleChoiceSet[i]] = false;
+      for (int j = 0; j < newTrianglesFormed; ++j)
+         trianglesOccupied[newTriangleIndices[j]] = false;
    }
-   dpTable[numOfStates++] = maxTriangles;
-   return maxTriangles;
+   return dpTable[stateNumber] = maxTriangles;
+}
+
+unsigned int getStateNumber(std::vector<bool>& linesOccupied)
+{
+   unsigned int stateNumber = 0;
+   for (int i = 0; i < 18; ++i)
+      if (linesOccupied[i] == 1)
+         stateNumber |= (1ULL << (17 - i));
+      else
+         stateNumber &= ~(1ULL << (17 - i));
+
+   return stateNumber;
 }
