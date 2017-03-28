@@ -80,16 +80,18 @@ bool isSlump(std::string inputString)
    if (inputString[1] != 'F')
       return false;
 
-   if (inputString[inputString.length() - 1] != 'G')
-      return false;
-
    int index = 2;
 
    while (inputString[index] == 'F')
       index++;
 
    if (inputString[index] != 'G')
+   {   
       if (!isSlump(inputString.substr(index, inputString.length() - index)))
+            return false;
+   }
+   else
+      if (index != inputString.length() - 1)
          return false;
 
    return true;
