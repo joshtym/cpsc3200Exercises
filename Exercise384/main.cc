@@ -1,7 +1,22 @@
+/*
+ * Solution to exercise 384 of UVA. Take in string input and try all
+ * possible partitions of the input to see if we can find one that
+ * satisfies the requirement of being a Slurpy. Two helper functions
+ * to determine whether the subconditions of slimps / slumps are met
+ *
+ * Author: Joshua Tymburski
+*/
 #include <iostream>
 #include <string>
 
+/*
+ * Helper function for determining Slimp status of a string
+*/
 bool isSlimp(std::string);
+
+/*
+ * Helper function for determining Slump status of a string
+*/
 bool isSlump(std::string);
 
 int main(int argc, char** argv)
@@ -16,6 +31,10 @@ int main(int argc, char** argv)
       std::cin >> input;
       bool isSlurpy = false;
 
+      /*
+       * Try all possible partitions of the given string
+       * Once we find one, we end our loop
+      */
       for (int j = 0; j < input.length(); ++j)
       {
          std::string slimpString = input.substr(0,j);
@@ -40,6 +59,10 @@ int main(int argc, char** argv)
 
 bool isSlimp(std::string inputString)
 {
+   /*
+    * Write all rules of being a slimp string below
+    * Pretty self explanatory.
+   */
    if (inputString.empty())
       return false;
 
@@ -71,6 +94,10 @@ bool isSlimp(std::string inputString)
 
 bool isSlump(std::string inputString)
 {
+   /*
+    * Write all rules of being a slump string below
+    * Pretty self explanatory.
+   */
    if (inputString.empty())
       return false;
 
