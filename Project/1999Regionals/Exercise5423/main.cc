@@ -34,7 +34,7 @@ int main(int argc, char** argv)
          for (int k = 0; k < 15; ++k)
             std::cin >> board[j][k];
 
-      std::cout << "Game: " << i + 1 << std::endl << std::endl;
+      std::cout << "Game " << i + 1 << ":" << std::endl << std::endl;
 
       while (!isGameOver)
       {
@@ -114,7 +114,10 @@ int main(int argc, char** argv)
             }
          }
       }
-      std::cout << "Final score: " << score << ", with " << listOfClusters.size() << " balls remaining." << std::endl;
+      if (listOfClusters.size() == 0)
+         std::cout << "Final score: " << score + 1000 << ", with " << listOfClusters.size() << " balls remaining." << std::endl;
+      else
+         std::cout << "Final score: " << score << ", with " << listOfClusters.size() << " balls remaining." << std::endl;
    }
    return 0;
 }
