@@ -1,17 +1,39 @@
+/*
+ * Solution to Exercise 5423 of regionals. Essentially, we evaluate our
+ * board by looking at balls that we haven't visited and use DFS to
+ * determine which balls around us are part of our cluster. Remove
+ * the largest cluster and keep track of score. Output score at end
+ *
+ * Author: Joshua Tymburski
+*/
 #include <iostream>
 #include <vector>
 #include <stack>
 #include <utility>
 
+/*
+ * Helper function to find the cluster
+ * start at given coordinates
+ *
+ * @param x
+ * @param y
+ * @return
+*/
 void findClusters(int, int);
+
+struct Ball
+{
+   int x;
+   int y;
+   char colour;
+};
 
 char board[10][15];
 bool visited[10][15] = {false};
 int rowDir[4] = {0,1,0,-1};
 int columnDir[4] = {-1,0,1,0};
 
-std::vector<std::vector<std::pair<int,int>>> listOfClusters;
-std::vector<char> colours;
+std::vector<std::vector<Ball>> allClusters;
 
 int main(int argc, char** argv)
 {
@@ -21,15 +43,20 @@ int main(int argc, char** argv)
 
    for (int i = 0; i < games; ++i)
    {
+      /*
+       * Semantics for presentation....
+      */
       if (!isFirstTime)
          std::cout << std::endl;
       else
          isFirstTime = false;
 
+      /*
+       * Running defaults for each game as well as board input
+      */
       int score = 0;
-      int moves = 1;
+      int currMove = 1;
       bool isGameOver = false;
-
       for (int j = 0; j < 10; ++j)
          for (int k = 0; k < 15; ++k)
             std::cin >> board[j][k];
@@ -40,9 +67,13 @@ int main(int argc, char** argv)
       {
          int maxCluster = 0;
          int maxClusterIndex;
-         listOfClusters.clear();
-         colours.clear();
+         allClusters.clear();
 
+         /*
+          * For every empty cell, we set it to 'E'. We will also
+          * mark each empty as cell as already visited since
+          * we clearly don't want to check for clusters in empty cells
+         */
          for (int j = 0; j < 10; ++j)
             for (int k = 0; k < 15; ++k)
                if (board[j][k] == 'E')
@@ -50,14 +81,24 @@ int main(int argc, char** argv)
                else
                   visited[j][k] = false;
 
+         /*
+          * The magic. Look at every board cell and find clusters spawning
+          * from there. Note that we start at the lower left and move upward in
+          * each column, and then move to the next column. This is for tie-breaking
+          * conditions.
+         */
          for (int j = 0; j < 15; ++j)
             for (int k = 9; k > -1; --k)
                if (!visited[k][j])
                   findClusters(k, j);
 
-         for (int j = 0; j < listOfClusters.size(); ++j)
+         /*
+          * Find maximum cluster size. Only update
+          * if not equal to
+         */
+         for (int j = 0; j < allClusters.size(); ++j)
          {
-            int temp = listOfClusters[j].size();
+            int temp = allClusters[j].size();
             temp = std::max(maxCluster, temp);
 
             if (temp != maxCluster)
@@ -72,14 +113,22 @@ int main(int argc, char** argv)
             isGameOver = true;
          else
          {
+            /*
+             * Compute the score, then remove all of the balls in the cluster and print out what we did
+            */
             int roundScore = (maxCluster - 2) * (maxCluster - 2);
             score += roundScore;
+            std::cout << "Move " << currMove++ << " at (" << 10 - allClusters[maxClusterIndex][0].x << "," << allClusters[maxClusterIndex][0].y + 1 << "): removed " << maxCluster << " balls of color " << allClusters[maxClusterIndex][0].colour << ", got " << roundScore << " points." << std::endl;
 
-            for (int j = 0; j < listOfClusters[maxClusterIndex].size(); ++j)
-               board[listOfClusters[maxClusterIndex][j].first][listOfClusters[maxClusterIndex][j].second] = 'E';
+            for (int j = 0; j < allClusters[maxClusterIndex].size(); ++j)
+               board[allClusters[maxClusterIndex][j].x][allClusters[maxClusterIndex][j].y] = 'E';
 
-            std::cout << "Move " << moves++ << " at (" << 10 - listOfClusters[maxClusterIndex][0].first << "," <<  listOfClusters[maxClusterIndex][0].second + 1 << "): removed " << maxCluster << " balls of color " << colours[maxClusterIndex] << ", got " << roundScore << " points." << std::endl;
-
+            /*
+             * The next two loops follow the rules of the game.
+             * Shift remaining balls in each column down to fill
+             * any empty space and shift columns to the left
+             * as far as possible if a column becomes empty
+            */
             for (int j = 9; j > -1; --j)
                for (int k = 0; k < 15; ++k)
                   if (board[j][k] == 'E')
@@ -114,10 +163,11 @@ int main(int argc, char** argv)
             }
          }
       }
-      if (listOfClusters.size() == 0)
-         std::cout << "Final score: " << score + 1000 << ", with " << listOfClusters.size() << " balls remaining." << std::endl;
+
+      if (allClusters.size() == 0)
+         std::cout << "Final score: " << score + 1000 << ", with 0 balls remaining." << std::endl;
       else
-         std::cout << "Final score: " << score << ", with " << listOfClusters.size() << " balls remaining." << std::endl;
+         std::cout << "Final score: " << score << ", with " << allClusters.size() << " balls remaining." << std::endl;
    }
    return 0;
 }
@@ -125,33 +175,44 @@ int main(int argc, char** argv)
 void findClusters(int x, int y)
 {
    char colour = board[x][y];
-   std::vector<std::pair<int,int>> cluster;
-   std::stack<std::pair<int,int>> dfsStack;
+   std::vector<Ball> cluster;
+   std::stack<Ball> dfsStack;
 
-   std::pair<int,int> location = std::make_pair(x,y);
+   /*
+    * Initialize our starting dfs Ball, push onto stack
+    * and set visited jazz
+   */
+   Ball currBall;
+   currBall.x = x;
+   currBall.y = y;
+   currBall.colour = colour;
 
-   dfsStack.push(location);
+   dfsStack.push(currBall);
    visited[x][y] = true;
 
+   /*
+    * Do the magic of dfs. Iterate through all connected
+    * balls of the same colour. Create our cluster.
+   */
    while(!dfsStack.empty())
    {
-      location = dfsStack.top();
+      currBall = dfsStack.top();
       dfsStack.pop();
-      cluster.push_back(location);
+      cluster.push_back(currBall);
 
       for (int i = 0; i < 4; ++i)
       {
-         std::pair<int,int> newLocation = std::make_pair(location.first + rowDir[i], location.second + columnDir[i]);
+         Ball nextBall = currBall;
+         nextBall.x += rowDir[i];
+         nextBall.y += columnDir[i];
 
-         if (newLocation.first > -1 && newLocation.first < 10 && newLocation.second > -1 && newLocation.second < 15)
-            if (!(visited[newLocation.first][newLocation.second]) && board[newLocation.first][newLocation.second] == colour)
+         if (nextBall.x > -1 && nextBall.x < 10 && nextBall.y > -1 && nextBall.y < 15)
+            if (!visited[nextBall.x][nextBall.y] && board[nextBall.x][nextBall.y] == colour)
             {
-               dfsStack.push(newLocation);
-               visited[newLocation.first][newLocation.second] = true;
+               dfsStack.push(nextBall);
+               visited[nextBall.x][nextBall.y] = true;
             }
       }
    }
-
-   listOfClusters.push_back(cluster);
-   colours.push_back(colour);
+   allClusters.push_back(cluster);
 }

@@ -18,6 +18,40 @@
 
 using namespace std;
 
+/*
+ * Network Flow
+ *
+ * Author: Howard Cheng
+ *
+ * The routine network_flow() finds the maximum flow that can be
+ * pushed from the source (s) to the sink (t) in a flow network
+ * (i.e. directed graph with capacities on the edges).  The maximum
+ * flow is returned.  Note that the graph is modified.  If you wish to
+ * recover the flow on an edge, it is in the "flow" field, as long as
+ * is_real is set to true.
+ *
+ * Note: If you have an undirected network. simply call add_edge twice
+ * with an edge in both directions (same capacity).  Note that 4 edges
+ * will be added (2 real edges and 2 residual edges).  To discover the
+ * actual flow between two vertices u and v, add up the flow of all
+ * real edges from u to v and subtract all the flow of real edges from
+ * v to u.  (In fact, for a residual edge the flow is always 0 in this
+ * implementation.)
+ *
+ * This code can also be used for bipartite matching by setting up an
+ * appropriate flow network.
+ *
+ * The code here assumes an adjacency list representation since most
+ * problems requiring network flow have sparse graphs.
+ *
+ * This is the basic augmenting path algorithm and it is not the most
+ * efficient.  But it should be good enough for most programming contest
+ * problems.  The complexity is O(f m) where f is the size of the flow
+ * and m is the number of edges.  This is good if you know that f
+ * is small, but can be exponential if f is large.
+ *
+*/
+
 struct Edge;
 typedef list<Edge>::iterator EdgeIter;
 
@@ -217,7 +251,7 @@ int main(int argc, char** argv)
        * adapters into the current adapter if they fit. Finally,
        * we connect the current adapater into any adapter that will
        * accept it. Since we have infinite amount of adapters, we
-       * set the weight to a high value.
+       * set the weight to an 'infinite' value
       */
       int startingIndexAdap = node;
       for (int j = 0; j < numOfAdapters; ++j)
@@ -240,6 +274,10 @@ int main(int argc, char** argv)
          node++;
       }
 
+      /*
+       * Finally, connect the devices to be plugged in to both their corresponding
+       * wall plug nodes as well as any adapters that they may fit into
+      */
       int nodesToDevices = node;
       for (int j = 0; j < numOfDevices; ++j)
       {
@@ -250,11 +288,15 @@ int main(int argc, char** argv)
 
          for (k = k; k < nodesToDevices; ++k)
             if (nodeConnectors[k] == devicePlugs[j])
-               G.add_edge(k,node,99999999);
+               G.add_edge(k,node,1);
 
          G.add_edge(node++,sink,1);
       }
 
+      /*
+       * Get flow and print out the number of devices
+       * that we didn't get to plugin (total - flow)
+      */
       int flow = network_flow(G, source, sink);
       std::cout << numOfDevices - flow << std::endl;
    }
