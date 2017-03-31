@@ -3,8 +3,8 @@
 #include <sstream>
 
 int findIllegalMove();
-bool isAccessible(int, int);
-int[] possibleMoves(int, int&);
+bool isAccessible(int, int, int);
+void possibleMoves(int[8],int);
 
 char turn;
 int numOfMoves;
@@ -65,12 +65,13 @@ int findIllegalMove()
    int moves[13];
    bool foundIllegalMove = false;
    int illegalMove = -1;
-   for (int i = 0; i < numOfMoves; ++i)
+   for (int i = 1; i <= numOfMoves; ++i)
    {
       if (foundIllegalMove)
          break;
 
       int squareMoves = 0;
+      std::cin.ignore(1);
       std::string input;
       std::getline(std::cin, input, '\n');
       
@@ -81,179 +82,66 @@ int findIllegalMove()
 
       for (int j = 0; j < squareMoves-1; ++j)
       {
-         /*if (turn == 'R')
+         if (tolower(board[moves[j]]) != tolower(turn))
          {
-            if (moves[j] != 'r' && moves[j] != 'R' && !isAccessible(moves[j], moves[j+1]))
+            foundIllegalMove = true;
+            illegalMove = i;
+            break;
+         }
+
+         int allMoves[8];
+         possibleMoves(allMoves, moves[j]);
+         bool canJump = false;
+
+         for (int k = 4; k < 8; ++k)
+            if (allMoves[k] != 0)
+               canJump = true;
+
+         int moveIndex;
+         foundIllegalMove = true;
+         illegalMove = i+1;
+         for (int k = 0; k < 8; ++k)
+            if (allMoves[k] == moves[j+1])
             {
-               foundIllegalMove = true;
-               illegalMove = i+1;
+               foundIllegalMove = false;
+               illegalMove = -1;
+               moveIndex = k;
                break;
             }
-            turn = 'W';
+
+         if (foundIllegalMove)
+            break;
+
+         if (moveIndex < 4 && canJump)
+         {
+            foundIllegalMove = true;
+            illegalMove = i+1;
+            break;
          }
          else
          {
-            if (moves[j] != 'w' || moves[j] != 'W' && !isAccessible(moves[j], moves[j+1]))
-            {
-               foundIllegalMove = true;
-               illegalMove = i+1;
-               break;
-            }
-            turn = 'R';
-         }*/
+            if (moveIndex > 3)
+               board[moveIndex - 4] = 'E';
+
+            board[moves[j+1]] = moves[j];
+            board[moves[j]] = 'E';
+         }
       }
+      int allMoves[8];
+      possibleMoves(allMoves, moves[squareMoves - 1]);
+      for (int j = 4; j < 8; ++j)
+         if (allMoves[j] != 0)
+         {
+            foundIllegalMove = true;
+            illegalMove = i;
+            break;
+         }
    }
    return illegalMove;
 }
 
-bool isAccessible(int start, int end)
+void possibleMoves(int allMoves[8], int start)
 {
-   char piece = board[start];
-   if (piece == 'r')
-   {
-      int adjacOne = adjacentSquares[start][2];
-      int adjacTwo = adjacentSquares[start][3];
-
-      if ((end == adjacOne || end == adjacTwo) && board[end] == 'E')
-      {
-         board[end] = 'r';
-         board[start] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacOne][2]) && (board[adjacOne] == 'w' || board[adjacOne] == 'W'))
-      {
-         board[end] = 'r';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacTwo][3]) && (board[adjacTwo] == 'w' || board[adjacTwo] == 'W'))
-      {
-         board[end] = 'r';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-   }
-
-   if (piece == 'w')
-   {
-      int adjacOne = adjacentSquares[start][0];
-      int adjacTwo = adjacentSquares[start][1];
-
-      if ((end == adjacOne || end == adjacTwo) && board[end] == 'E')
-      {
-         board[end] = 'w';
-         board[start] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacOne][0]) && (board[adjacOne] == 'r' || board[adjacOne] == 'R'))
-      {
-         board[end] = 'w';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacTwo][1]) && (board[adjacTwo] == 'r' || board[adjacTwo] == 'R'))
-      {
-         board[end] = 'w';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-   }
-
-   if (piece == 'R')
-   {
-      int adjacOne = adjacentSquares[start][0];
-      int adjacTwo = adjacentSquares[start][1];
-      int adjacThree = adjacentSquares[start][2];
-      int adjacFour = adjacentSquares[start][3];
-
-      if ((end == adjacOne || end == adjacTwo || end == adjacThree || end == adjacFour) && board[end] == 'E')
-      {
-         board[end] = 'R';
-         board[start] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacOne][0]) && (board[adjacOne] == 'w' || board[adjacOne] == 'W'))
-      {
-         board[end] = 'R';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacTwo][1]) && (board[adjacTwo] == 'w' || board[adjacTwo] == 'W'))
-      {
-         board[end] = 'R';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacThree][2]) && (board[adjacThree] == 'w' || board[adjacThree] == 'W'))
-      {
-         board[end] = 'R';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacFour][3]) && (board[adjacFour] == 'w' || board[adjacFour] == 'W'))
-      {
-         board[end] = 'R';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-   }
-
-   if (piece == 'W')
-   {
-      int adjacOne = adjacentSquares[start][0];
-      int adjacTwo = adjacentSquares[start][1];
-      int adjacThree = adjacentSquares[start][2];
-      int adjacFour = adjacentSquares[start][3];
-
-      if ((end == adjacOne || end == adjacTwo || end == adjacThree || end == adjacFour) && board[end] == 'E')
-      {
-         board[end] = 'W';
-         board[start] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacOne][0]) && (board[adjacOne] == 'r' || board[adjacOne] == 'R'))
-      {
-         board[end] = 'W';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacTwo][1]) && (board[adjacTwo] == 'r' || board[adjacTwo] == 'R'))
-      {
-         board[end] = 'W';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacThree][2]) && (board[adjacThree] == 'r' || board[adjacThree] == 'R'))
-      {
-         board[end] = 'W';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-      if ((end == adjacentSquares[adjacFour][3]) && (board[adjacFour] == 'r' || board[adjacFour] == 'R'))
-      {
-         board[end] = 'W';
-         board[start] = 'E';
-         board[adjacOne] = 'E';
-         return true;
-      }
-   }
-   return false;
-}
-
-int[] possibleMoves(int start, int& numOfPossible)
-{
-   int allMoves[8];
    int index = 0;
 
    for (int i = 0; i < 8; ++i)
@@ -265,8 +153,8 @@ int[] possibleMoves(int start, int& numOfPossible)
    if (board[start] == 'R' || board[start] == 'W')
    {
       for (int i = 0; i < 8; ++i)
-         if (!isAccessible(start, allMoves[i]))
-         allMoves[i] = 0;
+         if (allMoves[i] != 0 && !isAccessible(start, allMoves[i], i))
+            allMoves[i] = 0;
    }
    else if (board[start] == 'r')
    {
@@ -286,8 +174,19 @@ int[] possibleMoves(int start, int& numOfPossible)
    }
 
    for (int i = 0; i < 8; ++i)
-      if (!isAccessible(start, allMoves[i]))
+      if (allMoves[i] != 0 && !isAccessible(start, allMoves[i], i))
          allMoves[i] = 0;
-
-   return allMoves;
+   //DERP
 }
+
+bool isAccessible(int start, int end, int index)
+{
+   if (index < 4)
+      if (board[end] == 'E')
+         return true;
+   else
+      if (adjacentSquares[start][index] != 'E' && adjacentSquares[start][index] != board[start])
+         return true;
+   return false;
+}
+   
