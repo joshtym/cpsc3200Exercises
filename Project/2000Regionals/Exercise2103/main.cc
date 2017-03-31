@@ -30,6 +30,8 @@ int main(int argc, char** argv)
 {
    while (std::cin >> numOfRed >> numOfWhite && numOfRed != 0 && numOfWhite != 0)
    {
+      redPieces.clear();
+      whitePieces.clear();
       for (int i = 1; i < 32; ++i)
          board[i] = 'E';
       board[0] = 'X';
@@ -111,23 +113,31 @@ int findIllegalMove()
          }
 
          int allMoves[12][8];
-
-         /*if (tolower(turn) == 'w')
-         {
-            for (int k = 0; k < numOfWhite; ++k)
-         }
-         else
-         {
-
-         }*/
-         /// I NEED TO ITERATE THROUGH ALL PIECES AND FIGURE OUT IF WE CAN JUMP AT ANY OF THEM
-         int curPieceMoves[8];
-         possibleMoves(curPieceMoves, testMoves[i][j]);
+         int pieceIndex;
          bool canJump = false;
 
-         for (int k = 4; k < 8; ++k)
-            if (curPieceMoves[k] != 0)
-               canJump = true;
+         if (tolower(turn) == 'w')
+            for (int k = 0; k < numOfWhite; ++k)
+            {
+               possibleMoves(allMoves[k], whitePieces[k]);
+               if (whitePieces[k] == testMoves[i][j])
+                  pieceIndex = k;
+
+               for (int l = 4; l < 8; ++l)
+                  if (allMoves[k][l] != 0)
+                     canJump = true;
+            }
+         else
+            for (int k = 0; k < numOfRed; ++k)
+            {
+               possibleMoves(allMoves[k], redPieces[k]);
+               if (redPieces[k] == testMoves[i][j])
+                  pieceIndex  = k;
+
+               for (int l = 4; l < 8; ++l)
+                  if (allMoves[k][l] != 0)
+                     canJump = true;
+            }
 
          if (j == sizeOfMoves[i] - 1)
          {
@@ -145,7 +155,7 @@ int findIllegalMove()
          foundIllegalMove = true;
          illegalMove = i+1;
          for (int k = 0; k < 8; ++k)
-            if (curPieceMoves[k] == testMoves[i][j+1])
+            if (allMoves[pieceIndex][k] == testMoves[i][j+1])
             {
                foundIllegalMove = false;
                illegalMove = -1;
@@ -168,9 +178,19 @@ int findIllegalMove()
             board[adjacentSquares[testMoves[i][j]][moveIndex - 4]] = 'E';
 
             if (tolower(turn) == 'r')
+            {
+               for (int k = 0; k < numOfWhite; ++k)
+                  if (whitePieces[k] == adjacentSquares[testMoves[i][j]][moveIndex - 4])
+                     whitePieces.erase(whitePieces.begin() + k);
                numOfWhite--;
+            }
             else
+            {
+               for (int k = 0; k < numOfRed; ++k)
+                  if (redPieces[k] == adjacentSquares[testMoves[i][j]][moveIndex - 4])
+                     redPieces.erase(redPieces.begin() + k);
                numOfRed--;
+            }
 
             jumpedThisTurn = true;
          }
@@ -185,6 +205,19 @@ int findIllegalMove()
 
          else
             board[testMoves[i][j+1]] = board[testMoves[i][j]];
+
+         if (tolower(turn) == 'r')
+         {
+            for (int k = 0; k < numOfRed; ++k)
+               if (redPieces[k] == testMoves[i][j])
+                  redPieces[k] = testMoves[i][j+1];
+         }
+         else
+         {
+            for (int k = 0; k < numOfRed; ++k)
+               if (whitePieces[k] == testMoves[i][j])
+                  whitePieces[k] = testMoves[i][j+1];
+         }
 
          board[testMoves[i][j]] = 'E';
 
