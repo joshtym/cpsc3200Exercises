@@ -242,12 +242,17 @@ int main(int argc, char** argv)
 
       if (maxLcp != 0)
       {
-         int index = maxLcpIndex;
-         int numOfOccurrences = 2;
-         while (index + 1 < input.size() && lcp[++index] != 0)
+         std::string substring = input.substr(sarray[maxLcpIndex],maxLcp);
+         int numOfOccurrences = 1;
+         size_t pos = input.find(substring);
+         while (true)
+         {
+            pos = input.find(substring, pos+1);
+            if (pos == std::string::npos)
+               break;
             numOfOccurrences++;
-
-         std::cout << input.substr(sarray[maxLcpIndex], maxLcp) << " " << numOfOccurrences << std::endl;
+         }
+         std::cout << substring << " " << numOfOccurrences << std::endl;
       }
       else
          std::cout << "No repetitions found!" << std::endl;
