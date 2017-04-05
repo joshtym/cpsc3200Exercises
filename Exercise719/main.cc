@@ -1,3 +1,12 @@
+/*
+ * Solution to exercise 719 UVA. Determines the solution by concatening the
+ * input string with itself once, computing the suffix array and determining
+ * the first occurrence of a suffix that is at least length n. Also has some
+ * semantics to deal with repetitions in the string. Utilizes Howard Cheng's
+ * suffix array functions below
+ *
+ * Author: Joshua Tymburski
+*/
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -157,15 +166,36 @@ int main(int argc, char** argv)
 
    for (int i = 0; i < cases; ++i)
    {
+      /*
+       * Do the jazz to get our suffix array
+      */
       std::cin >> input;
       concatInput = input+input;
       build_sarray(concatInput, sarray);
+
+      /*
+       * Iterate through our suffix array to find the first iteration of a suffix with length
+       * greater than or equal to our input length
+      */
       for (int j = 0; j < concatInput.length(); ++j)
-         if (concatInput.length() - sarray[j] >= input.length())
+      {
+         int suffixLength = concatInput.length() - sarray[j];
+
+         if (suffixLength >= input.length())
          {
             int wantedIndex = j;
-            int suffixLength = concatInput.length() - sarray[j];
             std::string suffixString = concatInput.substr(sarray[j++], suffixLength);
+
+            /*
+             * This is some semantics to deal with repetion strings that may trigger
+             * the correct length, but may be part of a larger suffix that is actually the correct answer.
+             * For example, ababab has concatString of abababababab will find the first length to be at
+             * index 6 where the index we know to be lexographically smallest and earliest is index 0.
+             * Therefore, we start with the suffix string at index 6 and check the next one in the suffix
+             * array (which will be at index 4) to see if the string from index 6 is contained at
+             * the front of the one at index 6. The last one to have this property is the correct
+             * index we choose.
+            */
             while(j < concatInput.length())
             {
                int testLength = concatInput.length() - sarray[j];
@@ -183,6 +213,7 @@ int main(int argc, char** argv)
             std::cout << sarray[wantedIndex]+1 << std::endl;
             break;
          }
+      }
    }
    return 0;
 }

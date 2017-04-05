@@ -1,4 +1,18 @@
 /*
+ * Solution to UVA Exercise 11512. Uses suffix arrays and the corresponding lcp array
+ * to determine the largest repetition. This will be the largest lcp value. The first one
+ * will also be the one that is lexographically smallest (since suffix array). Then, we just
+ * find all instances of the string and print out as according to the rules in the problem.
+ * Uses Howard Cheng's suffix array code to do this.
+ *
+ * Author: Joshua Tymburski
+*/
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <algorithm>
+#include <climits>
+/*
  * Suffix array
  *
  * Author: Howard Cheng
@@ -38,12 +52,6 @@
  * The construction of the suffix array takes O(n) time.
  *
  */
-
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <algorithm>
-#include <climits>
 
 using namespace std;
 
@@ -174,50 +182,6 @@ void compute_lcp(string str, int sarray[], int lcp[])
   delete[] rank;
 }
 
-pair<int,int> find(const string &str, const int sarray[],
-         const string &pattern)
-{
-  int n = str.length(), p = pattern.length();
-  int L, R;
-
-  if (pattern <= str.substr(sarray[0], p)) {
-    L = 0;
-  } else if (pattern > str.substr(sarray[n-1], p)) {
-    L = n;
-  } else {
-    int lo = 0, hi = n-1;
-    while (hi - lo > 1) {
-      int mid = lo + (hi - lo)/2;
-      if (pattern <= str.substr(sarray[mid], p)) {
-   hi = mid;
-      } else {
-   lo = mid;
-      }
-    }
-    L = hi;
-  }
-
-  if (pattern < str.substr(sarray[0], p)) {
-    R = 0;
-  } else if (pattern >= str.substr(sarray[n-1], p)) {
-    R = n;
-  } else {
-    int lo = 0, hi = n-1;
-    while (hi - lo > 1) {
-      int mid = lo + (hi - lo)/2;
-      if (pattern < str.substr(sarray[mid], p)) {
-   hi = mid;
-      } else {
-   lo = mid;
-      }
-    }
-    R = hi;
-  }
-
-  if (L > R) R = L;
-  return make_pair(L, R);
-}
-
 int main(int argc, char** argv)
 {
    int cases;
@@ -226,6 +190,10 @@ int main(int argc, char** argv)
 
    for (int i = 0; i < cases; ++i)
    {
+      /*
+       * Build are arrays and figure out the maxLcp value.
+       * Pretty straight forward
+      */
       std::string input;
       std::cin >> input;
       build_sarray(input, sarray);
@@ -240,6 +208,10 @@ int main(int argc, char** argv)
             maxLcpIndex = j;
          }
 
+      /*
+       * Just use regular string operations to find all instances of the word
+       * or output as accordingly if none
+      */
       if (maxLcp != 0)
       {
          std::string substring = input.substr(sarray[maxLcpIndex],maxLcp);

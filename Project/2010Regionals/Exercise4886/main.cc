@@ -11,7 +11,7 @@ int main(int argc, char** argv)
       std::string input;
       std::getline(std::cin, input, '\n');
 
-      int pages[1001] = {0};
+      int pages[2000] = {0};
       int firstNum;
       int secondNum;
       char inputChar;
@@ -23,8 +23,13 @@ int main(int argc, char** argv)
          if (inputChar == '-')
          {
             iss >> secondNum;
+
             for (int i = firstNum; i <= secondNum; ++i)
-               pages[i] = 1;
+               if (i <= 1000)
+                  pages[i] = 1;
+               else
+                  break;
+
             iss >> inputChar;
          }
          else
