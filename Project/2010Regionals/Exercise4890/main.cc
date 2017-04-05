@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-std::string firstTwentyOrdinal[20] = {"","first","second","third","fourth","fifth","sixth","seventh","eighth","ninth","tenth","eleventh","twelvth","thirteenth","fourteenth","fifteenth","sixteenth","seventeenth","eighteenth","nineteenth"};
+std::string firstTwentyOrdinal[20] = {"","first","second","third","fourth","fifth","sixth","seventh","eighth","ninth","tenth","eleventh","twelfth","thirteenth","fourteenth","fifteenth","sixteenth","seventeenth","eighteenth","nineteenth"};
 std::string firstTwentyCardinal[20] = {"","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"};
 
 std::string tensOrdinal[10] = {"","tenth","twentieth","thirtieth","fortieth","fiftieth","sixtieth","seventieth","eightieth","ninetieth"};
@@ -28,6 +28,7 @@ int main(int argc, char** argv)
       if (sequence[number] == 0)
          computeValue(number);
 
+      std::cout << currString.substr(2500,500) << std::endl;
       std::cout << sequence[number] << std::endl;
    }
 
@@ -63,8 +64,11 @@ std::string computeTens(int val)
 
    if (ones == 0)
       return tensOrdinal[tens];
-   else
-      return (tensCardinal[tens] + firstTwentyOrdinal[ones]);
+
+   if (tens < 2)
+      return firstTwentyOrdinal[val];
+
+   return (tensCardinal[tens] + firstTwentyOrdinal[ones]);
 }
 
 std::string computeHundreds(int val)
@@ -75,7 +79,7 @@ std::string computeHundreds(int val)
    if (tens == 0)
       return firstTwentyCardinal[hundreds] + otherOrdinal[0];
    else
-      return firstTwentyCardinal[hundreds] + computeTens(tens);
+      return firstTwentyCardinal[hundreds] + otherCardinal[0] + computeTens(tens);
 }
 
 std::string computeThousands(int val)
@@ -100,5 +104,5 @@ std::string computeThousands(int val)
    if (hundreds == 0)
       return building + otherOrdinal[1];
    else
-      return building + computeHundreds(hundreds);
+      return building + otherCardinal[1] + computeHundreds(hundreds);
 }
