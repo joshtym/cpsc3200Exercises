@@ -10,10 +10,11 @@ std::string tensCardinal[10] = {"","","twenty","thirty","forty","fifty","sixty",
 std::string otherOrdinal[2] = {"hundredth","thousandth"};
 std::string otherCardinal[2] = {"hundred","thousand"};
 
-int sequence[100001] = {0};
+int sequence[1000001] = {0};
 std::string currString = "tisthe";
 int stringIndex = 0;
 int entriesComputed = 0;
+int entriesAppended = 0;
 
 void computeValue(int);
 std::string computeTens(int);
@@ -28,7 +29,6 @@ int main(int argc, char** argv)
       if (sequence[number] == 0)
          computeValue(number);
 
-      std::cout << currString.substr(2500,500) << std::endl;
       std::cout << sequence[number] << std::endl;
    }
 
@@ -39,21 +39,28 @@ void computeValue(int number)
 {
    while (entriesComputed < number)
    {
-      entriesComputed++;
+      int index = currString.find('t');
 
-      while(currString[stringIndex] != 't')
-         stringIndex++;
-
-      sequence[entriesComputed] = ++stringIndex;
-
-      if (stringIndex < 20)
-         currString += firstTwentyOrdinal[stringIndex];
-      else if (stringIndex < 100)
-         currString += computeTens(stringIndex);
-      else if (stringIndex < 1000)
-         currString += computeHundreds(stringIndex);
+      if (index != std::string::npos)
+      {
+         entriesComputed++;
+         stringIndex += ++index;
+         sequence[entriesComputed] = stringIndex;
+         currString = currString.substr(index, currString.length() - index);
+      }
       else
-         currString += computeThousands(stringIndex);
+      {
+         int valToAppend = sequence[++entriesAppended];
+
+         if (valToAppend < 20)
+            currString += firstTwentyOrdinal[valToAppend];
+         else if (valToAppend < 100)
+            currString += computeTens(valToAppend);
+         else if (valToAppend < 1000)
+            currString += computeHundreds(valToAppend);
+         else
+            currString += computeThousands(valToAppend);
+      }
    }
 }
 
@@ -74,12 +81,16 @@ std::string computeTens(int val)
 std::string computeHundreds(int val)
 {
    int hundreds = val / 100;
-   int tens = val % 100;
+   int doubleDigits = val % 100;
+   std::string tens = computeTens(doubleDigits);
 
-   if (tens == 0)
+   if (hundreds == 0)
+      return tens;
+
+   if (doubleDigits == 0)
       return firstTwentyCardinal[hundreds] + otherOrdinal[0];
-   else
-      return firstTwentyCardinal[hundreds] + otherCardinal[0] + computeTens(tens);
+
+   return firstTwentyCardinal[hundreds] + otherCardinal[0] + tens;
 }
 
 std::string computeThousands(int val)
