@@ -3,6 +3,8 @@
 #include <string>
 #include <cctype>
 
+bool containsAddition(std::string);
+
 int main(int argc, char** argv)
 {
    std::string input;
@@ -23,16 +25,23 @@ int main(int argc, char** argv)
             {
                if (i == input.length() - 1)
                   erase = true;
-               else if (!isalpha(input[i+1]))
+               else if (input[i+1] == '+')
+                  erase = true;
+               else if (!containsAddition(input.substr(matchingParenth+1,i-matchingParenth-1)))
                   erase = true;
             }
-            else if (!isalpha(input[matchingParenth - 1]))
+            else if (input[matchingParenth] - 1 == '+')
             {
                if (i == input.length() - 1)
                   erase = true;
-               else if (!isalpha(input[i+1]))
+               else if (input[i+1] == '+')
+                  erase = true;
+               else if (!containsAddition(input.substr(matchingParenth+1,i-matchingParenth-1)))
                   erase = true;
             }
+            else
+               if (!containsAddition(input.substr(matchingParenth+1,i-matchingParenth-1)))
+                  erase = true;
 
             if (erase)
             {
@@ -48,4 +57,17 @@ int main(int argc, char** argv)
    }
 
    return 0;
+}
+
+bool containsAddition(std::string input)
+{
+   for (int i = 0; i < input.length(); ++i)
+   {
+      if (input[i] == '(')
+         while (input[i] != ')')
+            ++i;
+      else if (input[i] == '+')
+         return true;
+   }
+   return false;
 }
