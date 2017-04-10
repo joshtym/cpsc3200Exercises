@@ -7,9 +7,9 @@
 std::string teams[20] = {"","","","","","","","","","","","","","","","","","","",""};
 int maxPos[20];
 int minPos[20];
-int points[20] = {0};
+int points[20];
 std::pair<std::string,std::string> matchesLeft[12];
-std::string rankingEnds[21] = {"","st","nd","rd","th","th","th","th","th","th","th","th","th","th","th","th","th","th","th","th"};
+std::string rankingEnds[21] = {"","st","nd","rd","th","th","th","th","th","th","th","th","th","th","th","th","th","th","th","th","th"};
 int numLeft = 0;
 int numOfTeams, matches;
 
@@ -18,8 +18,18 @@ int getIndex(std::string);
 
 int main(int argc, char** argv)
 {
+   bool isFirstTime = true;
    while (std::cin >> numOfTeams >> matches && numOfTeams != 0)
    {
+      if (isFirstTime)
+         isFirstTime = false;
+      else
+         std::cout << std::endl;
+
+      numLeft = 0;
+      for (int i = 0; i < 20; ++i)
+         points[i] = 0;
+
       for (int i = 0; i < numOfTeams; ++i)
       {
          std::string inputTeam;
@@ -93,7 +103,7 @@ void maxMinPositions(int index)
                minPos[selectedTeams[j]] = i;
             if (maxPos[selectedTeams[j]] > i)
                maxPos[selectedTeams[j]] = i;
-            checked[j] = true;
+            checked[selectedTeams[j]] = true;
          }
       }
       return;
@@ -113,6 +123,8 @@ void maxMinPositions(int index)
    points[teamOneIndex] += 1;
    points[teamTwoIndex] += 1;
    maxMinPositions(index+1);
+   points[teamOneIndex] -= 1;
+   points[teamTwoIndex] -= 1;
 }
 
 int getIndex(std::string input)

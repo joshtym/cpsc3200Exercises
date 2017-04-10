@@ -30,14 +30,24 @@ int main(int argc, char** argv)
                else if (!containsAddition(input.substr(matchingParenth+1,i-matchingParenth-1)))
                   erase = true;
             }
-            else if (input[matchingParenth] - 1 == '+')
+            else if (input[matchingParenth - 1] == '+')
             {
                if (i == input.length() - 1)
                   erase = true;
-               else if (input[i+1] == '+')
+               else if (input[i+1] == '+' || input[i+1] == ')')
                   erase = true;
                else if (!containsAddition(input.substr(matchingParenth+1,i-matchingParenth-1)))
                   erase = true;
+            }
+            else if (input[matchingParenth - 1] == '(')
+            {
+               if (input[i+1] == ')')
+                  erase = true;
+               else if (input[i+1] == '+')
+                  erase = true;
+               else
+                  if (!containsAddition(input.substr(matchingParenth+1,i-matchingParenth-1)))
+                     erase = true;
             }
             else
                if (!containsAddition(input.substr(matchingParenth+1,i-matchingParenth-1)))
