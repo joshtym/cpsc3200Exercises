@@ -1,26 +1,53 @@
+/*
+ * Solution to North America 2010 Rocky Mountain Regionals Exercise 4889. Takes all
+ * three numbers, determines if any of them is a float, then goes by the ruleset to
+ * determine what kind of package it is. 
+ *
+ * Author: Joshua Tymburski
+*/
 #include <iostream>
 #include <string>
 #include <algorithm>
 
+std::string possibilities[4] = {"letter", "packet", "parcel", "not mailable"};
+
+/*
+ * Helper function which determines, given the height, weight, thickness,
+ * what kind of item this must be
+ *
+ * @param length
+ * @param height
+ * @param thickness
+ * @return indexToType
+*/
 int determineType(double, double, double);
 
 int main(int argc, char** argv)
 {
-   std::string possibilities[4] = {"letter", "packet", "parcel", "not mailable"};
-
    std::string input[3];
    double numbers[3];
 
    while (std::cin >> input[0] >> input[1] >> input[2] && input[0] != "0")
    {
-      int floatNumberIndex = -1;
+      /*
+       * First, determine if one of them is floating point.
+      */
       int type = 3;
+      int floatNumberIndex = -1;
+
       for (int i = 0; i < 3; ++i)
          if (input[i].find('.') != std::string::npos)
          {
             floatNumberIndex = i;
             break;
          }
+
+      /*
+       * If one is a floatingPoint, then this is our index. We run through the possible orderings
+       * of the three numbers into the function (observe that there are 2 possibilities if we know
+       * which is the thickness and 6 possibilities if we don't know). We use permutations to
+       * iterate through them all. Take the minimum type index as our type. Need to sort to use perms.
+      */
       if (floatNumberIndex >= 0)
       {
          numbers[2] = std::stod(input[floatNumberIndex]);
@@ -55,6 +82,9 @@ int main(int argc, char** argv)
 
 int determineType(double length, double height, double thickness)
 {
+   /*
+    * Go by rulesets within the problem statement to determine package type
+   */
    if (length + 2*height + 2*thickness > 2100)
       return 3;
 
